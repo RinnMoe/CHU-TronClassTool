@@ -1,7 +1,11 @@
 import time
 import json
 import uuid
+import requests
 
+from io import BytesIO
+from tkinter import Tk, Label
+from PIL import ImageTk, Image
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -45,12 +49,34 @@ driver.find_element(By.ID, "login_submit").click()
 print("正在登录...")
 time.sleep(5)
 
-res = driver.execute_async_script(fetch_script, api_url)
-if res['status'] == 200:
-    print("登录成功！五秒后进入监控...")
-else:
-    print("请检查账号密码是否正确，如检查无误请手动登录并完成验证码认证。")
-    driver.quit()
+try:
+    # res = driver.execute_async_script(fetch_script, api_url)
+    res = requests.get(api_url,cookies={c['name']: c['value'] for c in driver.get_cookies()})
+    if res['status'] == 200:
+        print("登录成功！五秒后进入监控...")
+    else:
+        print("请检查账号密码是否正确。")
+        driver.quit()
+except Exception as e:
+    print("账号密码登录失败,正在获得登录二维码...")
+    driver.find_element(By.ID, "qrLogin_a").click()
+    driver.set_window_size(1920, 1080)
+    time.sleep(1)
+    driver.get_screenshot_as_file("cache/fullpage.png")
+    root = Tk()
+    img = Image.open("cache/fullpage.png")
+    tk_img = ImageTk.PhotoImage(img)
+    Label(root, image=tk_img).pack()
+    root.mainloop()
+    res = driver.execute_async_script(fetch_script, api_url)
+    if res['status'] == 200:
+        print("登录成功！五秒后进入监控...")
+    else:
+        print("登录失败。")
+        driver.quit()
+        time.sleep(5)
+        exit(0)
+
 time.sleep(5)
 
 
