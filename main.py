@@ -47,7 +47,7 @@ driver.find_element(By.ID, "login_submit").click()
 
 print("正在登录...")
 time.sleep(1)
-res = requests.get(api_url,cookies={c['name']: c['value'] for c in driver.get_cookies()})
+res = requests.get(api_url, cookies={c['name']: c['value'] for c in driver.get_cookies()})
 if res.status_code == 200:
     print("登录成功！五秒后进入监控...")
 else:
@@ -61,7 +61,7 @@ else:
     tk_img = ImageTk.PhotoImage(img)
     Label(root, image=tk_img).pack()
     root.mainloop()
-    res = requests.get(api_url,cookies={c['name']: c['value'] for c in driver.get_cookies()})
+    res = requests.get(api_url, cookies={c['name']: c['value'] for c in driver.get_cookies()})
     if res.status_code == 200:
         print("登录成功！五秒后进入监控...")
     else:
