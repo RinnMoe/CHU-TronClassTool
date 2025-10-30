@@ -1,10 +1,10 @@
 # 厦大数字化教学平台自动签到机器人 V1.0
 # by KrsMt-0113
-
 import time
 import json
 import uuid
 import requests
+
 from serverchan_sdk import sc_send
 from tkinter import Tk, Label
 from PIL import ImageTk, Image
@@ -49,10 +49,11 @@ print("已连接到厦大数字化教学平台。")
 # 检查是否需要验证码，有验证码直接登录，否则扫码
 # 待优化: 提取验证码图片，OCR识别或用户自行登录
 ts = int(time.time() * 1000)
-print(ts)
-res_data = requests.get(f"https://ids.xmu.edu.cn/authserver/checkNeedCaptcha.htl?username={username}&_={ts}").json()
-if res_data.get("isNeed", "false"):
-    print("正在登录...")
+temp_header = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"}
+temp_url = f"https://ids.xmu.edu.cn/authserver/checkNeedCaptcha.htl?username={username}&_={ts}"
+res_data = requests.get(temp_url,cookies={c['name']: c['value'] for c in driver.get_cookies()},headers=temp_header).json()
+if res_data['isNeed'] == False:
+    print("登录无需验证,正在登录...")
     sc_send(sendkey, "签到机器人", "账号密码登录中...", {"tags": "签到机器人"})
     WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.ID, "userNameLogin_a"))
