@@ -19,7 +19,7 @@ with open("config.json") as f:
     username = config["username"]
     password = config["password"]
 api_url = "https://lnt.xmu.edu.cn/api/radar/rollcalls"
-interval = 2.0  # 轮询间隔
+interval = 1.5  # 轮询间隔
 
 fetch_script = """
 const url = arguments[0];
@@ -40,23 +40,24 @@ driver = webdriver.Chrome(options=chrome_options)
 
 driver.get("https://lnt.xmu.edu.cn")
 print("已连接到厦大数字化教学平台。")
-sc_send(sendkey, "签到机器人", "已连接。正在登录...", {"tags": "签到机器人"})
 
-WebDriverWait(driver, 10).until(
-    EC.element_to_be_clickable((By.ID, "userNameLogin_a"))
-).click()
-driver.find_element(By.ID, "username").send_keys(username)
-driver.find_element(By.ID, "password").send_keys(password)
-driver.find_element(By.ID, "login_submit").click()
-
-print("正在登录...")
-time.sleep(1)
-res = requests.get(api_url, cookies={c['name']: c['value'] for c in driver.get_cookies()})
-if res.status_code == 200:
-    print("登录成功！五秒后进入监控...")
-    sc_send(sendkey, "签到机器人", "登录成功！五秒后进入监控模式...", {"tags": "签到机器人"})
+# 检查是否需要验证码
+ts = int(time.time() * 1000)
+print(ts)
+res_data = requests.get(f"https://ids.xmu.edu.cn/authserver/checkNeedCaptcha.htl?username={username}&_={ts}").json()
+if res_data.get("isNeed", "false"):
+    print("正在登录...")
+    sc_send(sendkey, "签到机器人", "账号密码登录中...", {"tags": "签到机器人"})
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.ID, "userNameLogin_a"))
+    ).click()
+    driver.find_element(By.ID, "username").send_keys(username)
+    driver.find_element(By.ID, "password").send_keys(password)
+    driver.find_element(By.ID, "login_submit").click()
+    time.sleep(1)
 else:
-    print("账号密码登录失败,正在获得登录二维码...")
+    print("账号密码登录暂时不可用，请用企业微信扫码登录。")
+    sc_send(sendkey, "签到机器人", "需要图形验证码，请扫码登录。", {"tags": "签到机器人"})
     driver.find_element(By.ID, "qrLogin_a").click()
     driver.set_window_size(1920, 1080)
     time.sleep(1)
@@ -66,14 +67,16 @@ else:
     tk_img = ImageTk.PhotoImage(img)
     Label(root, image=tk_img).pack()
     root.mainloop()
-    res = requests.get(api_url, cookies={c['name']: c['value'] for c in driver.get_cookies()})
-    if res.status_code == 200:
-        print("登录成功！五秒后进入监控...")
-    else:
-        print("登录失败。")
-        driver.quit()
-        time.sleep(5)
-        exit(0)
+
+res = requests.get(api_url, cookies={c['name']: c['value'] for c in driver.get_cookies()})
+if res.status_code == 200:
+    print("登录成功！五秒后进入监控...")
+    sc_send(sendkey, "签到机器人", "登录成功！五秒后进入监控模式...", {"tags": "签到机器人"})
+else:
+    print("登录失败。")
+    driver.quit()
+    time.sleep(5)
+    exit(0)
 
 time.sleep(5)
 
