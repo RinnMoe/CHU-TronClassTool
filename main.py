@@ -50,8 +50,8 @@ print("已连接到厦大数字化教学平台。")
 ts = int(time.time() * 1000)
 temp_header = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"}
 temp_url = f"https://ids.xmu.edu.cn/authserver/checkNeedCaptcha.htl?username={username}&_={ts}"
-res_data = requests.get(temp_url,cookies={c['name']: c['value'] for c in driver.get_cookies()},headers=temp_header).json()
-if res_data['isNeed'] == False:
+res_data = requests.get(temp_url, cookies={c['name']: c['value'] for c in driver.get_cookies()}, headers=temp_header).json()
+if not res_data['isNeed']:
     print("登录无需验证,正在登录...")
     sc_send(sendkey, "签到机器人", "账号密码登录中...", {"tags": "签到机器人"})
     WebDriverWait(driver, 10).until(
