@@ -238,7 +238,7 @@ def main():
 
     # 连接停止按钮
     window.stop_button.clicked.connect(worker.stop)
-    window.stop_button.clicked.connect(lambda: window.add_log("用户手动停止监控", "warning"))
+    window.stop_button.clicked.connect(lambda: window.add_log("Monitor stopped by user.", "warning"))
 
     # 启动工作线程
     worker.start()
