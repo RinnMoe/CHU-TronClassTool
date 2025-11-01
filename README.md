@@ -2,11 +2,6 @@
 
 使用方法在[这里](quickstart.md)查看
 
-## Contributors
-<a href="https://github.com/KrsMt-0113/XMU-Rollcall-Bot/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=KrsMt-0113/XMU-Rollcall-Bot" />
-</a>
-
 ## 版本 `1.0.0` - *2025-10-29*
 
 - 创世版本发布。
