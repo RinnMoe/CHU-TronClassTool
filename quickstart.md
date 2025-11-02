@@ -26,7 +26,7 @@
    
 3. 配置文件
 
-    在 `config.json` 中的对应位置填入账号、密码、Server酱的sendkey。
+    在 `config.json` 中的对应位置填入账号、密码、Server酱的sendkey（可不填）。
 
     ```json
     {
@@ -38,4 +38,5 @@
    
 4. 运行程序
     
-    直接运行 `main.py` 即可。
+    CLI 模式：直接运行 `main.py` 即可。
+    GUI 模式：运行 'main_gui.py' 即可。
