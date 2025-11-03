@@ -1,10 +1,8 @@
 import uuid
-import time
 import threading
 import requests
 import json
 import time
-from serverchan_sdk import sc_send
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 with open("config.json") as f:
@@ -42,7 +40,7 @@ def send_code(driver, rollcall_id):
     cookies = {c['name']: c['value'] for c in cookies_list}
     print("正在遍历签到码...")
     t00 = time.time()
-    with ThreadPoolExecutor(max_workers=50) as executor:
+    with ThreadPoolExecutor(max_workers=200) as executor:
         futures = [executor.submit(put_request, i, headers, cookies) for i in range(10000)]
         for f in as_completed(futures):
             res = f.result()

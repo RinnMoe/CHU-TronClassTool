@@ -18,7 +18,6 @@ with open("config.json") as f:
     config = json.load(f)
     username = config["username"]
     password = config["password"]
-    sendkey = config["sendkey"]
 
 # 签到列表获取接口，轮询间隔，轮询脚本
 api_url = "https://lnt.xmu.edu.cn/api/radar/rollcalls"

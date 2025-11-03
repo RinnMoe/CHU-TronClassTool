@@ -7,7 +7,6 @@ import uuid
 import requests
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QThread, pyqtSignal, QObject
-from serverchan_sdk import sc_send
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -69,7 +68,6 @@ fetch(url, {credentials: 'include'})
             # 启动selenium
             self.log("Initializing Selenium...", "info")
             self.update_status("Initializing...")
-            # sc_send(self.sendkey, "签到机器人", "正在初始化...", {"tags": "签到机器人"})
             self.driver = webdriver.Chrome(options=chrome_options)
 
             # 访问登录页面

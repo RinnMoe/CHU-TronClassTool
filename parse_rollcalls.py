@@ -1,11 +1,6 @@
 import time
 import json
-from send_code import send_code, send_radar
-from serverchan_sdk import sc_send
-
-with open("config.json") as f:
-    config = json.load(f)
-    sendkey = config["sendkey"]
+from verify import send_code, send_radar
 
 def decode_rollcall(data):
     rollcalls = data['rollcalls']
