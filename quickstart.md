@@ -41,4 +41,5 @@
 4. 运行程序
     
     CLI 模式：直接运行 `main.py` 即可。
+
     GUI 模式：运行 'main_gui.py' 即可。
