@@ -1,6 +1,6 @@
 import time
 import json
-from send_code import send_code
+from send_code import send_code, send_radar
 from serverchan_sdk import sc_send
 
 with open("config.json") as f:
@@ -61,9 +61,12 @@ def parse_rollcalls(data, driver):
                 print("该签到已完成。")
                 return True
             elif rollcalls[i]['is_radar']:
-                print("本签到为/包含雷达签到，请自行操作。")
-                sc_send(sendkey, "签到机器人", f"新的雷达签到:[{rollcalls[i]['course_title']}],由 {rollcalls[i]['created_by_name']} 创建，请自行签到。", {"tags": "签到机器人"})
-                return False
+                if send_radar(driver, rollcalls[i]['rollcall_id']):
+                    print("签到成功！")
+                    return True
+                else:
+                    print("签到失败。")
+                    return False
             else:
                 return False
     else:

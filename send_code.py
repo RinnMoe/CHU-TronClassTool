@@ -3,6 +3,7 @@ import time
 import threading
 import requests
 import json
+import time
 from serverchan_sdk import sc_send
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -55,4 +56,25 @@ def send_code(driver, rollcall_id):
     t01 = time.time()
     print("失败。\n用时: %.2f 秒" % (t01 - t00))
     # sc_send(sendkey, "签到机器人", f"签到失败，请手动签到。", {"tags": "签到机器人"})
+    return False
+
+def send_radar(driver, rollcall_id):
+    url = f"https://lnt.xmu.edu.cn/api/rollcall/{rollcall_id}/answer?api_version=1.76"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36 Edg/141.0.0.0",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "accuracy": 35,
+        "altitude": 0,
+        "altitudeAccuracy": None,
+        "deviceId": str(uuid.uuid1()),
+        "heading": None,
+        "latitude": 24.4380548,
+        "longitude": 118.09716877,  # 庄汉水楼，后续加入更多位置
+        "speed": None
+    }
+    res = requests.put(url, json=payload, headers=headers, cookies={c['name']: c['value'] for c in driver.get_cookies()})
+    if res.status_code == 200:
+        return True
     return False
