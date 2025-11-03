@@ -4,7 +4,6 @@ import time
 import json
 import uuid
 import requests
-from serverchan_sdk import sc_send
 from tkinter import Tk, Label
 from PIL import ImageTk, Image
 from selenium import webdriver
@@ -38,7 +37,6 @@ chrome_options.add_argument("--headless")  # 无头运行
 
 # 启动selenium
 print("正在初始化...")
-sc_send(sendkey, "签到机器人", "正在初始化...", {"tags": "签到机器人"})
 driver = webdriver.Chrome(options=chrome_options)
 
 # 访问登录页面,不开VPN好像连不上
@@ -53,7 +51,6 @@ temp_url = f"https://ids.xmu.edu.cn/authserver/checkNeedCaptcha.htl?username={us
 res_data = requests.get(temp_url, cookies={c['name']: c['value'] for c in driver.get_cookies()}, headers=temp_header).json()
 if not res_data['isNeed']:
     print("登录无需验证,正在登录...")
-    sc_send(sendkey, "签到机器人", "账号密码登录中...", {"tags": "签到机器人"})
     WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.ID, "userNameLogin_a"))
     ).click()
@@ -63,7 +60,6 @@ if not res_data['isNeed']:
     time.sleep(1)
 else:
     print("账号密码登录暂时不可用，请用企业微信扫码登录。")
-    sc_send(sendkey, "签到机器人", "需要图形验证码，请扫码登录。", {"tags": "签到机器人"})
     driver.find_element(By.ID, "qrLogin_a").click()
     driver.set_window_size(1920, 1080)
     time.sleep(1)
@@ -77,7 +73,6 @@ else:
 res = requests.get(api_url, cookies={c['name']: c['value'] for c in driver.get_cookies()})
 if res.status_code == 200:
     print("登录成功！五秒后进入监控...")
-    sc_send(sendkey, "签到机器人", "登录成功！五秒后进入监控模式...", {"tags": "签到机器人"})
 else:
     print("登录失败。")
     driver.quit()
@@ -89,7 +84,6 @@ time.sleep(5)
 
 deviceID = uuid.uuid4()
 print(f"签到监控启动。")
-sc_send(sendkey, "签到机器人", "签到监控已启动。", {"tags": "签到机器人"})
 start = time.time()
 temp_data = {'rollcalls': []}
 while True:
@@ -110,7 +104,6 @@ while True:
 
     elif res['status'] != 200:
         print("失去连接，请重新登录。")
-        sc_send(sendkey, "签到机器人", "失去连接，监控已终止。", {"tags": "签到机器人"})
         break
     time.sleep(interval)
 

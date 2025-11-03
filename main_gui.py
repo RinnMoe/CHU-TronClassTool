@@ -69,7 +69,7 @@ fetch(url, {credentials: 'include'})
             # 启动selenium
             self.log("Initializing Selenium...", "info")
             self.update_status("Initializing...")
-            sc_send(self.sendkey, "签到机器人", "正在初始化...", {"tags": "签到机器人"})
+            # sc_send(self.sendkey, "签到机器人", "正在初始化...", {"tags": "签到机器人"})
             self.driver = webdriver.Chrome(options=chrome_options)
 
             # 访问登录页面
@@ -85,7 +85,7 @@ fetch(url, {credentials: 'include'})
             if not res_data['isNeed']:
                 self.log("No captcha needed. Logging you in...", "info")
                 self.update_status("Logging in...")
-                sc_send(self.sendkey, "签到机器人", "账号密码登录中...", {"tags": "签到机器人"})
+                # sc_send(self.sendkey, "签到机器人", "账号密码登录中...", {"tags": "签到机器人"})
 
                 WebDriverWait(self.driver, 10).until(
                     EC.element_to_be_clickable((By.ID, "userNameLogin_a"))
@@ -97,7 +97,7 @@ fetch(url, {credentials: 'include'})
             else:
                 self.log("Captcha needed. Please login in through QR code.", "warning")
                 self.update_status("Waiting for QR code login...")
-                sc_send(self.sendkey, "签到机器人", "需要图形验证码，请扫码登录。", {"tags": "签到机器人"})
+                # sc_send(self.sendkey, "签到机器人", "需要图形验证码，请扫码登录。", {"tags": "签到机器人"})
 
                 # 切换到二维码登录
                 self.driver.find_element(By.ID, "qrLogin_a").click()
@@ -132,7 +132,7 @@ fetch(url, {credentials: 'include'})
             res = requests.get(api_url, cookies={c['name']: c['value'] for c in self.driver.get_cookies()})
             if res.status_code == 200:
                 self.log("Successfully login!", "success")
-                sc_send(self.sendkey, "签到机器人", "登录成功！五秒后进入监控模式...", {"tags": "签到机器人"})
+                # sc_send(self.sendkey, "签到机器人", "登录成功！五秒后进入监控模式...", {"tags": "签到机器人"})
             else:
                 self.log("Login failed.", "error")
                 return
@@ -142,7 +142,7 @@ fetch(url, {credentials: 'include'})
             deviceID = uuid.uuid4()
             self.log("Start monitoring.", "success")
             self.update_status("Monitoring...")
-            sc_send(self.sendkey, "签到机器人", "签到监控已启动。", {"tags": "签到机器人"})
+            # sc_send(self.sendkey, "签到机器人", "签到监控已启动。", {"tags": "签到机器人"})
             self.signals.started.emit()
 
             temp_data = {'rollcalls': []}
@@ -182,7 +182,7 @@ fetch(url, {credentials: 'include'})
 
                 elif res['status'] != 200:
                     self.log("Disconnected, monitor has stopped.", "error")
-                    sc_send(self.sendkey, "签到机器人", "失去连接，监控已终止。", {"tags": "签到机器人"})
+                    # sc_send(self.sendkey, "签到机器人", "失去连接，监控已终止。", {"tags": "签到机器人"})
                     break
 
                 time.sleep(interval)
