@@ -8,7 +8,7 @@
 
 使用方法在 [这里](quickstart.md) 查看
 
-高性能分支 `performance` 已推出，请前往 [这里](https://github.com/KrsMt-0113/XMU-Rollcall-Bot/tree/aiohttp) 查看并使用。
+~~高性能分支 `performance` 已推出，请前往 [这里](https://github.com/KrsMt-0113/XMU-Rollcall-Bot/tree/aiohttp) 查看并使用。~~
 
 ## 版本 `1.0.0` - *2025-10-29*
 
