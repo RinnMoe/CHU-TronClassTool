@@ -4,6 +4,8 @@
 
 > 本项目适用于其他 tronclass 平台的签到活动，欢迎其他学校的朋友contribute, 后续可以考虑建立新仓库收录各校版本的`rollcall bot`.
 
+> 高性能分支已暂停维护，在测试过程中遇到了令我头疼的错误, 也许接口有限速造成了我被拒绝连接, 但用 requests 进行高并发压力测试时又不存在这种问题，可能是我不懂 aiohttp 吧。
+
 使用方法在 [这里](quickstart.md) 查看
 
 高性能分支 `performance` 已推出，请前往 [这里](https://github.com/KrsMt-0113/XMU-Rollcall-Bot/tree/aiohttp) 查看并使用。
