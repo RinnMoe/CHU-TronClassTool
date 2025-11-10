@@ -12,7 +12,7 @@
 
 如果你想用最短的代码实现签到功能，请参考 [demo.md](demo.md) 。
 
-~~高性能分支 `performance` 已推出，请前往 [这里](https://github.com/KrsMt-0113/XMU-Rollcall-Bot/tree/aiohttp) 查看并使用。~~
+高性能分支 `performance` 已推出，请前往 [这里](https://github.com/KrsMt-0113/XMU-Rollcall-Bot/tree/aiohttp) 查看并使用。
 
 ## 版本 `1.0.0` - *2025-10-29*
 
@@ -40,7 +40,8 @@
 
 - 加入雷达签到功能，暂时仅支持庄汉水楼雷达签到，其他位置待补充。
 
-## ~~分支 `performance` - *2025-11-04*~~
+## 分支 `performance` - *2025-11-04*
 
-- ~~高性能版本，仅CLI模式，基于 `aiohttp` 实现异步请求。~~
-- 暂停维护。
+- 高性能版本，仅CLI模式，基于 `aiohttp` 实现异步请求。
+- ~~暂停维护。~~
+- 2025-11-10, 首次测试成功，将在下一个版本中加入主分支。
