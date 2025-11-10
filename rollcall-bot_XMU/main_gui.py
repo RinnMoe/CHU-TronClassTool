@@ -208,7 +208,7 @@ def main():
     """主函数"""
     # 读取配置
     try:
-        with open("config.json") as f:
+        with open("rollcall-bot_XMU/config.json") as f:
             config = json.load(f)
             username = config["username"]
             password = config["password"]
