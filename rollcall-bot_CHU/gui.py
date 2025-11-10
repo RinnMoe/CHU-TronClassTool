@@ -19,11 +19,11 @@ class SignalEmitter(QThread):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("XMU RollCall Bot v2.0")
+        self.setWindowTitle("CHD-TronClassTool-GUI v0.1 ")
         self.setMinimumSize(600, 600)
 
         # 设置主题颜色
-        self.primary_color = "#4A90E2"
+        self.primary_color = "#3f72af"
         self.success_color = "#5CB85C"
         self.warning_color = "#F0AD4E"
         self.danger_color = "#D9534F"
@@ -54,20 +54,20 @@ class MainWindow(QMainWindow):
 
         # 标题栏
         title_layout = QHBoxLayout()
-        title_label = QLabel("RollCall Monitor")
-        title_label.setFont(QFont("Monaco", 24, QFont.Weight.Bold))
+        title_label = QLabel("TronClass Tool for CHD")
+        title_label.setFont(QFont("Microsoft Yahei", 24, QFont.Weight.Bold))
         title_label.setStyleSheet(f"color: {self.text_color};")
         title_layout.addWidget(title_label)
         title_layout.addStretch()
 
         # 状态指示器
         self.status_indicator = QLabel("●")
-        self.status_indicator.setFont(QFont("Monaco", 20))
+        self.status_indicator.setFont(QFont("Microsoft Yahei", 20))
         self.status_indicator.setStyleSheet(f"color: {self.text_muted};")
         title_layout.addWidget(self.status_indicator)
 
-        self.status_label = QLabel("Initializing...")
-        self.status_label.setFont(QFont("Monaco", 12))
+        self.status_label = QLabel("初始化...")
+        self.status_label.setFont(QFont("Microsoft Yahei", 12))
         self.status_label.setStyleSheet(f"color: {self.text_muted};")
         title_layout.addWidget(self.status_label)
 
@@ -79,22 +79,22 @@ class MainWindow(QMainWindow):
         info_layout.setSpacing(30)
 
         # 监控时长
-        self.time_widget = self.create_info_widget("⏱️", "Running", "00:00:00")
+        self.time_widget = self.create_info_widget("⏱️", "已运行", "00:00:00")
         info_layout.addWidget(self.time_widget)
 
         # 检测次数
-        self.check_widget = self.create_info_widget("🔍", "Queries", "0")
+        self.check_widget = self.create_info_widget("🔍", "检查次数", "0")
         info_layout.addWidget(self.check_widget)
 
         # 签到次数
-        self.sign_widget = self.create_info_widget("✅", "Success", "0")
+        self.sign_widget = self.create_info_widget("✅", "签到成功次数", "0")
         info_layout.addWidget(self.sign_widget)
 
         main_layout.addWidget(info_frame)
 
         # 日志区域
         log_label = QLabel("Logs")
-        log_label.setFont(QFont("Monaco", 14, QFont.Weight.Bold))
+        log_label.setFont(QFont("Microsoft Yahei", 14, QFont.Weight.Bold))
         log_label.setStyleSheet(f"color: {self.text_color};")
         main_layout.addWidget(log_label)
 
@@ -106,37 +106,37 @@ class MainWindow(QMainWindow):
                 border: 2px solid #E1E8ED;
                 border-radius: 10px;
                 padding: 15px;
-                font-family: 'Monaco', monospace;
+                font-family: 'Microsoft Yahei', monospace;
                 font-size: 12px;
                 color: {self.text_color};
             }}
         """)
         main_layout.addWidget(self.log_text, stretch=1)
 
-        # 二维码显示区域（初始隐藏）
-        self.qr_frame = self.create_card()
-        qr_layout = QVBoxLayout(self.qr_frame)
-        qr_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        qr_title = QLabel("📱 Sign in with QR Code by WeCom.")
-        qr_title.setFont(QFont("Monaco", 14, QFont.Weight.Bold))
-        qr_title.setStyleSheet(f"color: {self.text_color};")
-        qr_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        qr_layout.addWidget(qr_title)
-
-        self.qr_label = QLabel()
-        self.qr_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.qr_label.setStyleSheet("padding: 20px;")
-        qr_layout.addWidget(self.qr_label)
-
-        self.qr_frame.hide()
-        main_layout.addWidget(self.qr_frame)
+        # # 二维码显示区域（初始隐藏）
+        # self.qr_frame = self.create_card()
+        # qr_layout = QVBoxLayout(self.qr_frame)
+        # qr_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        #
+        # qr_title = QLabel("📱 Sign in with QR Code by WeCom.")
+        # qr_title.setFont(QFont("Microsoft Yahei", 14, QFont.Weight.Bold))
+        # qr_title.setStyleSheet(f"color: {self.text_color};")
+        # qr_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # qr_layout.addWidget(qr_title)
+        #
+        # self.qr_label = QLabel()
+        # self.qr_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # self.qr_label.setStyleSheet("padding: 20px;")
+        # qr_layout.addWidget(self.qr_label)
+        #
+        # self.qr_frame.hide()
+        # main_layout.addWidget(self.qr_frame)
 
         # 底部按钮
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        self.stop_button = QPushButton(" Stop Monitoring ")
+        self.stop_button = QPushButton(" Stop ")
         self.stop_button.setEnabled(False)
         self.stop_button.setFixedSize(140, 40)
         self.stop_button.setStyleSheet(f"""
@@ -145,7 +145,7 @@ class MainWindow(QMainWindow):
                 color: white;
                 border: none;
                 border-radius: 8px;
-                font-family: 'Monaco', monospace;
+                font-family: 'Microsoft Yahei', monospace;
                 font-size: 13px;
                 font-weight: bold;
             }}
@@ -196,19 +196,19 @@ class MainWindow(QMainWindow):
         layout.setSpacing(5)
 
         icon_label = QLabel(icon)
-        icon_label.setFont(QFont("Monaco", 32))
+        icon_label.setFont(QFont("Microsoft Yahei", 32))
         icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(icon_label)
 
         value_label = QLabel(value)
-        value_label.setFont(QFont("Monaco", 24, QFont.Weight.Bold))
+        value_label.setFont(QFont("Microsoft Yahei", 24, QFont.Weight.Bold))
         value_label.setStyleSheet(f"color: {self.primary_color};")
         value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         value_label.setObjectName("value")
         layout.addWidget(value_label)
 
         title_label = QLabel(title)
-        title_label.setFont(QFont("Monaco", 11))
+        title_label.setFont(QFont("Microsoft Yahei", 11))
         title_label.setStyleSheet(f"color: {self.text_muted};")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
@@ -256,32 +256,32 @@ class MainWindow(QMainWindow):
         self.status_label.setStyleSheet(f"color: {color};")
         self.status_indicator.setStyleSheet(f"color: {color};")
 
-    def show_qr_code(self, image_path):
-        """显示二维码"""
-        pixmap = QPixmap(image_path)
-        if not pixmap.isNull():
-            # 缩放到合适大小
-            scaled_pixmap = pixmap.scaled(400, 400, Qt.AspectRatioMode.KeepAspectRatio,
-                                          Qt.TransformationMode.SmoothTransformation)
-            self.qr_label.setPixmap(scaled_pixmap)
-            self.qr_frame.show()
-
-    def hide_qr_code(self):
-        """隐藏二维码"""
-        self.qr_frame.hide()
+    # def show_qr_code(self, image_path):
+    #     """显示二维码"""
+    #     pixmap = QPixmap(image_path)
+    #     if not pixmap.isNull():
+    #         # 缩放到合适大小
+    #         scaled_pixmap = pixmap.scaled(400, 400, Qt.AspectRatioMode.KeepAspectRatio,
+    #                                       Qt.TransformationMode.SmoothTransformation)
+    #         self.qr_label.setPixmap(scaled_pixmap)
+    #         self.qr_frame.show()
+    #
+    # def hide_qr_code(self):
+    #     """隐藏二维码"""
+    #     self.qr_frame.hide()
 
     def start_monitoring(self):
         """开始监控"""
         self.start_time = datetime.datetime.now()
         self.timer.start(1000)  # 每秒更新一次
         self.stop_button.setEnabled(True)
-        self.update_status("Monitoring...")
+        self.update_status("运行中...")
 
     def stop_monitoring(self):
         """停止监控"""
         self.timer.stop()
         self.stop_button.setEnabled(False)
-        self.update_status("Stopped")
+        self.update_status("已停止")
 
     def update_runtime(self):
         """更新运行时间"""

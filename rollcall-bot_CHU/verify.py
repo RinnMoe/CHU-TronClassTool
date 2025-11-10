@@ -9,7 +9,7 @@ def pad(i):
 
 def send_code(driver, rollcall_id):
     stop_flag = threading.Event()
-    url = f"https://lnt.xmu.edu.cn/api/rollcall/{rollcall_id}/answer_number_rollcall"
+    url = f"https://course-online.chd.edu.cn/api/rollcall/{rollcall_id}/answer_number_rollcall"
 
     def put_request(i, headers, cookies):
         if stop_flag.is_set():
@@ -49,7 +49,7 @@ def send_code(driver, rollcall_id):
     return False
 
 def send_radar(driver, rollcall_id):
-    url = f"https://lnt.xmu.edu.cn/api/rollcall/{rollcall_id}/answer?api_version=1.76"
+    url = f"https://course-online.chd.edu.cn/api/rollcall/{rollcall_id}/answer?api_version=1.76"
     headers = {
         "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36 Edg/141.0.0.0",
         "Content-Type": "application/json"
@@ -60,8 +60,8 @@ def send_radar(driver, rollcall_id):
         "altitudeAccuracy": None,
         "deviceId": str(uuid.uuid1()),
         "heading": None,
-        "latitude": 24.4378,
-        "longitude": 118.0965,  # 庄汉水楼，后续加入更多位置
+        "latitude": 34.3692,
+        "longitude": 108.9017,  # 西区修远明远鸿远三栋楼几何中心
         "speed": None
     }
     res = requests.put(url, json=payload, headers=headers, cookies={c['name']: c['value'] for c in driver.get_cookies()})
