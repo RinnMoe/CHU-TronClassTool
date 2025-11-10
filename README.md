@@ -1,3 +1,13 @@
+# TronClassTool for CHD 
+该项目是 https://github.com/KrsMt-0113/XMU-Rollcall-Bot 的移植版本。 
+
+下述是原项目Readme内容。
+
+---
+
+
+
+
 # XMU 自动签到工具 - 更新日志
 
 > 本项目除 `main_gui.py`, `gui.py` 为 Github Copilot(Claude Sonnet 4.5)生成, 其余均为纯手打, CLI 版本放心使用, GUI 可能会有未预料到的错误，如有请发 issue。

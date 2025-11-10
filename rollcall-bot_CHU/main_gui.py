@@ -1,5 +1,7 @@
-# 厦大数字化教学平台自动签到机器人 V1.0 - GUI版本
-# by KrsMt-0113
+# CHU-TronClassTool-GUI 0.1
+# transplant by Rinn
+# origin repository https://github.com/KrsMt-0113/XMU-Rollcall-Bot
+
 import sys
 import time
 import json
@@ -9,6 +11,7 @@ from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QThread, pyqtSignal, QObject
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.ie.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
@@ -29,7 +32,7 @@ class WorkerSignals(QObject):
 
 
 class MonitorWorker(QThread):
-    """监控工作线程"""
+    """监测工作线程"""
 
     def __init__(self, username, password, sendkey):
         super().__init__()
@@ -49,10 +52,10 @@ class MonitorWorker(QThread):
         self.signals.status.emit(status)
 
     def run(self):
-        """运行监控任务"""
+        """运行监测任务"""
         try:
             # 签到列表获取接口，轮询间隔，轮询脚本
-            api_url = "https://lnt.xmu.edu.cn/api/radar/rollcalls"
+            api_url = "https://course-online.chd.edu.cn/api/radar/rollcalls"
             interval = 1.5
             fetch_script = """
 const url = arguments[0];
@@ -63,86 +66,39 @@ fetch(url, {credentials: 'include'})
 """
 
             chrome_options = Options()
-            chrome_options.add_argument("--headless")  # 无头运行
+            # chrome_options.add_argument("--headless")  # 无头运行
 
             # 启动selenium
-            self.log("Initializing Selenium...", "info")
-            self.update_status("Initializing...")
-            self.driver = webdriver.Chrome(options=chrome_options)
+            self.log("初始化 Selenium...", "info")
+            self.update_status("初始化...")
+            self.driver = webdriver.Chrome(chrome_options, service=Service('../chromedriver.exe'))
 
             # 访问登录页面
-            self.driver.get("https://lnt.xmu.edu.cn")
-            self.log("Connected to XMU Course platform.", "success")
+            self.driver.get("https://course-online.chd.edu.cn/user/index#/")
+            self.log("已连接 TronClass", "success")
 
-            # 检查是否需要验证码
-            ts = int(time.time() * 1000)
-            temp_header = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"}
-            temp_url = f"https://ids.xmu.edu.cn/authserver/checkNeedCaptcha.htl?username={self.username}&_={ts}"
-            res_data = requests.get(temp_url, cookies={c['name']: c['value'] for c in self.driver.get_cookies()}, headers=temp_header).json()
-
-            if not res_data['isNeed']:
-                self.log("No captcha needed. Logging you in...", "info")
-                self.update_status("Logging in...")
-                # sc_send(self.sendkey, "签到机器人", "账号密码登录中...", {"tags": "签到机器人"})
-
-                WebDriverWait(self.driver, 10).until(
-                    EC.element_to_be_clickable((By.ID, "userNameLogin_a"))
-                ).click()
-                self.driver.find_element(By.ID, "username").send_keys(self.username)
-                self.driver.find_element(By.ID, "password").send_keys(self.password)
-                self.driver.find_element(By.ID, "login_submit").click()
-                time.sleep(1)
-            else:
-                self.log("Captcha needed. Please login in through QR code.", "warning")
-                self.update_status("Waiting for QR code login...")
-                # sc_send(self.sendkey, "签到机器人", "需要图形验证码，请扫码登录。", {"tags": "签到机器人"})
-
-                # 切换到二维码登录
-                self.driver.find_element(By.ID, "qrLogin_a").click()
-                self.driver.set_window_size(1920, 1080)
-                time.sleep(1)
-
-                # 截图并显示二维码
-                elem = self.driver.find_element(By.ID, "qr_img")
-                elem.screenshot("cache/qr_code.png")
-                self.signals.qr_code.emit("cache/qr_code.png")
-
-                # 等待登录成功（轮询检查）
-                login_success = False
-                for _ in range(120):  # 最多等待2分钟
-                    if not self.running:
-                        return
-                    try:
-                        res = requests.get(api_url, cookies={c['name']: c['value'] for c in self.driver.get_cookies()})
-                        if res.status_code == 200:
-                            login_success = True
-                            break
-                    except:
-                        pass
-                    time.sleep(1)
-
-                self.signals.hide_qr.emit()
-
-                if not login_success:
-                    self.log("Login timeout.", "error")
-                    return
+            WebDriverWait(self.driver, 10, 0.5).until(EC.title_contains('统一身份认证平台'))
+            self.driver.find_element(By.ID, "username").send_keys(self.username)
+            self.driver.find_element(By.ID, "password").send_keys(self.password)
+            self.driver.find_element(By.ID, "login_submit").click()
+            self.log("登录中...", "info")
 
             # 验证登录
-            time.sleep(3)
+            WebDriverWait(self.driver, 100, 0.5).until(EC.title_contains('首页 - 畅课'))
             res = requests.get(api_url, cookies={c['name']: c['value'] for c in self.driver.get_cookies()})
             if res.status_code == 200:
-                self.log("Successfully login!", "success")
-                # sc_send(self.sendkey, "签到机器人", "登录成功！五秒后进入监控模式...", {"tags": "签到机器人"})
+                self.log(f'用户{self.driver.find_element(By.ID, "userCurrentName").text}已登录成功', "success")
+                # sc_send(self.sendkey, "签到机器人", "登录成功！五秒后进入监测模式...", {"tags": "签到机器人"})
             else:
-                self.log("Login failed.", "error")
+                self.log("登录失败.", "error")
                 return
 
             time.sleep(5)
 
             deviceID = uuid.uuid4()
-            self.log("Start monitoring.", "success")
-            self.update_status("Monitoring...")
-            # sc_send(self.sendkey, "签到机器人", "签到监控已启动。", {"tags": "签到机器人"})
+            self.log("开始监测.", "success")
+            self.update_status("运行中...")
+            # sc_send(self.sendkey, "签到机器人", "签到监测已启动。", {"tags": "签到机器人"})
             self.signals.started.emit()
 
             temp_data = {'rollcalls': []}
@@ -181,8 +137,8 @@ fetch(url, {credentials: 'include'})
                         self.log(f"Error: {str(e)}", "error")
 
                 elif res['status'] != 200:
-                    self.log("Disconnected, monitor has stopped.", "error")
-                    # sc_send(self.sendkey, "签到机器人", "失去连接，监控已终止。", {"tags": "签到机器人"})
+                    self.log("连接断开，监测已终止。", "error")
+                    # sc_send(self.sendkey, "签到机器人", "失去连接，监测已终止。", {"tags": "签到机器人"})
                     break
 
                 time.sleep(interval)
@@ -195,7 +151,7 @@ fetch(url, {credentials: 'include'})
             self.signals.finished.emit()
 
     def stop(self):
-        """停止监控"""
+        """停止监测"""
         self.running = False
         if self.driver:
             try:
@@ -208,7 +164,7 @@ def main():
     """主函数"""
     # 读取配置
     try:
-        with open("rollcall-bot_XMU/config.json") as f:
+        with open("config.json", encoding='utf-8') as f:
             config = json.load(f)
             username = config["username"]
             password = config["password"]
@@ -228,8 +184,8 @@ def main():
     # 连接信号
     worker.signals.log.connect(window.add_log)
     worker.signals.status.connect(window.update_status)
-    worker.signals.qr_code.connect(window.show_qr_code)
-    worker.signals.hide_qr.connect(window.hide_qr_code)
+    # worker.signals.qr_code.connect(window.show_qr_code)
+    # worker.signals.hide_qr.connect(window.hide_qr_code)
     worker.signals.started.connect(window.start_monitoring)
     worker.signals.finished.connect(window.stop_monitoring)
     worker.signals.check_increment.connect(window.increment_check_count)
@@ -237,7 +193,7 @@ def main():
 
     # 连接停止按钮
     window.stop_button.clicked.connect(worker.stop)
-    window.stop_button.clicked.connect(lambda: window.add_log("Monitor stopped by user.", "warning"))
+    window.stop_button.clicked.connect(lambda: window.add_log("用户终止了监测.", "warning"))
 
     # 启动工作线程
     worker.start()
