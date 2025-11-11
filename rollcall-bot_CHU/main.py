@@ -1,8 +1,7 @@
-# CHU-TronClassTool 0.1
+# CHU-TronClassTool 0.1.1
 # transplant by Rinn
 # origin repository https://github.com/KrsMt-0113/XMU-Rollcall-Bot
-
-
+import datetime
 import time
 import json
 import uuid
@@ -15,15 +14,15 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from parse_rollcalls import parse_rollcalls
 
-# 读取学号、密码
+# 读取学号、密码、轮询间隔
 with open("config.json", encoding='utf-8') as f:
     config = json.load(f)
     username = config["username"]
     password = config["password"]
+    interval = config["interval"]
 
 # 签到列表获取接口，轮询间隔，轮询脚本
 api_url = "https://course-online.chd.edu.cn/api/radar/rollcalls"
-interval = 1.5 #全局休眠时间
 fetch_script = """
 const url = arguments[0];
 const callback = arguments[arguments.length - 1];
@@ -37,11 +36,14 @@ chrome_options = Options()
 chrome_options.add_argument("--headless")  # 无头运行
 
 # 启动selenium
-print("CHU-TronClassTool 0.1\ntransplant by Rinn\n正在初始化...")
-driver = webdriver.Chrome(chrome_options, service=Service('../chromedriver.exe'))
+print(f"CHU-TronClassTool 0.1.1\ntransplant by Rinn\n正在初始化...")
+try:
+    driver = webdriver.Chrome(chrome_options, service=Service('chromedriver.exe'))
+except ValueError as e:
+    print(f"找不到浏览器文件。\n{e}")
 
 driver.get("https://course-online.chd.edu.cn/user/index#/")
-print("已连接。开始登录。")
+print("已连接 TronClass\n登录中...")
 
 WebDriverWait(driver, 10, 0.5).until(EC.title_contains('统一身份认证平台'))
 driver.find_element(By.ID, "username").send_keys(username)
@@ -49,7 +51,7 @@ driver.find_element(By.ID, "password").send_keys(password)
 driver.find_element(By.ID, "login_submit").click()
 
 WebDriverWait(driver, 100, 0.5).until(EC.title_contains('首页 - 畅课'))
-print(f'用户{driver.find_element(By.ID, "userCurrentName").text}已登录成功')
+print(f'用户 {driver.find_element(By.ID, "userCurrentName").text} 登录成功')
 
 res = requests.get(api_url, cookies={c['name']: c['value'] for c in driver.get_cookies()})
 if res.status_code == 200:
@@ -64,16 +66,25 @@ time.sleep(5)
 
 deviceID = uuid.uuid4()
 print(f"签到监测启动。")
+
 start = time.time()
 temp_data = {'rollcalls': []}
+check_count = 0
+
 while True:
     res = driver.execute_async_script(fetch_script, api_url)
+
+    check_count += 1
+
+    if check_count % 5 == 0:
+        print(f'[{datetime.datetime.now().strftime("%H:%M:%S")}] 签到已进行了{check_count}次')
+
     if res['status'] == 200:
         text = res.get('text', '')
         try:
             data = json.loads(text)
             if temp_data == data:
-                # print("当前无签到活动。")
+                time.sleep(interval)
                 continue
             else:
                 temp_data = data

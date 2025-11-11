@@ -1,4 +1,4 @@
-# CHU-TronClassTool-GUI 0.1
+# CHU-TronClassTool-GUI 0.1.1
 # transplant by Rinn
 # origin repository https://github.com/KrsMt-0113/XMU-Rollcall-Bot
 
@@ -56,7 +56,6 @@ class MonitorWorker(QThread):
         try:
             # 签到列表获取接口，轮询间隔，轮询脚本
             api_url = "https://course-online.chd.edu.cn/api/radar/rollcalls"
-            interval = 1.5
             fetch_script = """
 const url = arguments[0];
 const callback = arguments[arguments.length - 1];
@@ -66,12 +65,12 @@ fetch(url, {credentials: 'include'})
 """
 
             chrome_options = Options()
-            # chrome_options.add_argument("--headless")  # 无头运行
+            chrome_options.add_argument("--headless")  # 无头运行
 
             # 启动selenium
             self.log("初始化 Selenium...", "info")
             self.update_status("初始化...")
-            self.driver = webdriver.Chrome(chrome_options, service=Service('../chromedriver.exe'))
+            self.driver = webdriver.Chrome(chrome_options, service=Service('chromedriver.exe'))
 
             # 访问登录页面
             self.driver.get("https://course-online.chd.edu.cn/user/index#/")
@@ -87,16 +86,18 @@ fetch(url, {credentials: 'include'})
             WebDriverWait(self.driver, 100, 0.5).until(EC.title_contains('首页 - 畅课'))
             res = requests.get(api_url, cookies={c['name']: c['value'] for c in self.driver.get_cookies()})
             if res.status_code == 200:
-                self.log(f'用户{self.driver.find_element(By.ID, "userCurrentName").text}已登录成功', "success")
+                self.log(f'用户 {self.driver.find_element(By.ID, "userCurrentName").text} 已登录成功', "success")
                 # sc_send(self.sendkey, "签到机器人", "登录成功！五秒后进入监测模式...", {"tags": "签到机器人"})
             else:
                 self.log("登录失败.", "error")
                 return
 
+            self.log("5秒后开始监测", "info")
+            self.log(f"轮询间隔为 {interval} 秒", "info")
             time.sleep(5)
 
             deviceID = uuid.uuid4()
-            self.log("开始监测.", "success")
+            self.log("监测已启动~", "success")
             self.update_status("运行中...")
             # sc_send(self.sendkey, "签到机器人", "签到监测已启动。", {"tags": "签到机器人"})
             self.signals.started.emit()
@@ -108,31 +109,32 @@ fetch(url, {credentials: 'include'})
                 res = self.driver.execute_async_script(fetch_script, api_url)
                 check_count += 1
 
-                if check_count % 10 == 0:  # 每10次检测更新一次计数
-                    self.signals.check_increment.emit()
+                # if check_count % 10 == 0:  # 每10次检测更新一次计数
+                self.signals.check_increment.emit()
 
                 if res['status'] == 200:
                     text = res.get('text', '')
                     try:
                         data = json.loads(text)
                         if temp_data == data:
+                            time.sleep(interval)
                             continue
                         else:
                             temp_data = data
                             if len(temp_data['rollcalls']) > 0:
-                                self.log(f"Find {len(temp_data['rollcalls'])} new rollcalls！", "warning")
+                                self.log(f"发现 {len(temp_data['rollcalls'])} 个新签到！", "warning")
                                 self.signals.sign_increment.emit()
 
                                 # 显示详细信息
                                 for idx, rollcall in enumerate(temp_data['rollcalls']):
-                                    self.log(f"Rollcall {idx+1}/{len(temp_data['rollcalls'])}: {rollcall['course_title']}", "info")
-                                    self.log(f"  Launch by: {rollcall['created_by_name']}", "info")
-                                    self.log(f"  Status: {rollcall['rollcall_status']}", "info")
+                                    self.log(f"签到: {idx+1}/{len(temp_data['rollcalls'])}: {rollcall['course_title']}", "info")
+                                    self.log(f"  由 {rollcall['created_by_name']} 发起", "info")
+                                    self.log(f"  状态: {rollcall['rollcall_status']}", "info")
 
                                 if not parse_rollcalls(temp_data, self.driver):
                                     temp_data = {'rollcalls': []}
                                 else:
-                                    self.log("Rollcall done.", "success")
+                                    self.log("签到成功.", "success")
                     except Exception as e:
                         self.log(f"Error: {str(e)}", "error")
 
@@ -140,7 +142,6 @@ fetch(url, {credentials: 'include'})
                     self.log("连接断开，监测已终止。", "error")
                     # sc_send(self.sendkey, "签到机器人", "失去连接，监测已终止。", {"tags": "签到机器人"})
                     break
-
                 time.sleep(interval)
 
         except Exception as e:
@@ -168,6 +169,8 @@ def main():
             config = json.load(f)
             username = config["username"]
             password = config["password"]
+            global interval
+            interval = config["interval"]
     except Exception as e:
         print(f"读取配置文件失败: {e}")
         return

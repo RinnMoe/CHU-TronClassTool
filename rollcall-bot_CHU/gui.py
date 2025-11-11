@@ -19,7 +19,7 @@ class SignalEmitter(QThread):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("CHD-TronClassTool-GUI v0.1 ")
+        self.setWindowTitle("CHU-TronClassTool-GUI v0.1.1 ")
         self.setMinimumSize(600, 600)
 
         # 设置主题颜色
@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):
 
         # 标题栏
         title_layout = QHBoxLayout()
-        title_label = QLabel("TronClass Tool for CHD")
+        title_label = QLabel("签到了喵？")
         title_label.setFont(QFont("Microsoft Yahei", 24, QFont.Weight.Bold))
         title_label.setStyleSheet(f"color: {self.text_color};")
         title_layout.addWidget(title_label)
