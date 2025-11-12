@@ -25,7 +25,7 @@ def decode_rollcall(data):
         rollcall_count = 0
     return rollcall_count, result
 
-def parse_rollcalls(data, driver):
+def parse_rollcalls(data, driver, longitude, latitude):
     undone = 0
     count, rollcalls = decode_rollcall(data)
     if count:
@@ -70,7 +70,7 @@ def parse_rollcalls(data, driver):
                     print("暂不支持扫码签到")
                     return False
                 elif temp_str == "雷达签到":
-                    if send_radar(driver, rollcalls[i]['rollcall_id']):
+                    if send_radar(driver, rollcalls[i]['rollcall_id'], longitude, latitude):
                         print("雷达签到成功！")
                         return True
                     else:
