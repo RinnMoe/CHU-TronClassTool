@@ -1,4 +1,4 @@
-# CHU-TronClassTool-GUI 0.1.1
+# CHU-TronClassTool-GUI 0.1.2
 # transplant by Rinn
 # origin repository https://github.com/KrsMt-0113/XMU-Rollcall-Bot
 
@@ -65,7 +65,7 @@ fetch(url, {credentials: 'include'})
 """
 
             chrome_options = Options()
-            chrome_options.add_argument("--headless")  # 无头运行
+            # chrome_options.add_argument("--headless")  # 无头运行
 
             # 启动selenium
             self.log("初始化 Selenium...", "info")

@@ -1,5 +1,8 @@
 {
   "username":"ID",
   "password":"PASSWD",
-  "interval":2
+  "interval":2,
+  "longitude": 108.9007,
+  "latitude": 34.3724,
+  "location":"WT地址"
 }

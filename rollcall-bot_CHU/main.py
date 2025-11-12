@@ -1,4 +1,4 @@
-# CHU-TronClassTool 0.1.1
+# CHU-TronClassTool 0.1.2
 # transplant by Rinn
 # origin repository https://github.com/KrsMt-0113/XMU-Rollcall-Bot
 import datetime
@@ -20,6 +20,8 @@ with open("config.json", encoding='utf-8') as f:
     username = config["username"]
     password = config["password"]
     interval = config["interval"]
+    longitude = config['longitude']
+    latitude = config['latitude']
 
 # 签到列表获取接口，轮询间隔，轮询脚本
 api_url = "https://course-online.chd.edu.cn/api/radar/rollcalls"
@@ -36,7 +38,7 @@ chrome_options = Options()
 chrome_options.add_argument("--headless")  # 无头运行
 
 # 启动selenium
-print(f"CHU-TronClassTool 0.1.1\ntransplant by Rinn\n正在初始化...")
+print(f"CHU-TronClassTool 0.1.2\ntransplant by Rinn\n正在初始化...")
 try:
     driver = webdriver.Chrome(chrome_options, service=Service('chromedriver.exe'))
 except ValueError as e:
@@ -77,7 +79,7 @@ while True:
     check_count += 1
 
     if check_count % 5 == 0:
-        print(f'[{datetime.datetime.now().strftime("%H:%M:%S")}] 签到已进行了{check_count}次')
+        print(f'[{datetime.datetime.now().strftime("%H:%M:%S")}] 监测已进行了{check_count}次')
 
     if res['status'] == 200:
         text = res.get('text', '')
@@ -89,7 +91,7 @@ while True:
             else:
                 temp_data = data
                 if len(temp_data['rollcalls']) > 0:
-                    if not parse_rollcalls(temp_data, driver):
+                    if not parse_rollcalls(temp_data, driver, longitude, latitude):
                         temp_data = {'rollcalls': []}
         except Exception as e:
             print(time.strftime("%H:%M:%S", time.localtime()), ":发生错误")

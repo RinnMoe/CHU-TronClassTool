@@ -48,7 +48,7 @@ def send_code(driver, rollcall_id):
     print("失败。\n用时: %.2f 秒" % (t01 - t00))
     return False
 
-def send_radar(driver, rollcall_id):
+def send_radar(driver, rollcall_id, latitude, longitude):
     url = f"https://course-online.chd.edu.cn/api/rollcall/{rollcall_id}/answer?api_version=1.76"
     headers = {
         "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36 Edg/141.0.0.0",
@@ -60,8 +60,8 @@ def send_radar(driver, rollcall_id):
         "altitudeAccuracy": None,
         "deviceId": str(uuid.uuid1()),
         "heading": None,
-        "latitude": 34.3692,
-        "longitude": 108.9017,  # 西区修远明远鸿远三栋楼几何中心
+        "latitude": latitude,
+        "longitude": longitude,  # 从config文件获取
         "speed": None
     }
     res = requests.put(url, json=payload, headers=headers, cookies={c['name']: c['value'] for c in driver.get_cookies()})
