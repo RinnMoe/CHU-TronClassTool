@@ -11,8 +11,10 @@
 /.venv
 /.vscode
 /rollcall-bot_CHU-TEST
+/XMU-Rollcall-Bot-aiohttp
 *__pycache__
 /.quickstart.md
 /.demo.md
 /.demo.py
 /.chromedriver.exe
+/rollcall-bot_CHU/config.json
