@@ -24,14 +24,15 @@ def decode_rollcall(data):
         rollcall_count = 0
     return rollcall_count, result
 
-def parse_rollcalls(data, driver, longitude, latitude):
+def parse_rollcalls(data, driver, longitude=None, latitude=None):
     undone = 0
     count, rollcalls = decode_rollcall(data)
+    result = [False for _ in range(count)]
     if count:
-        print(f"[{time.strftime("%H:%M:%S", time.localtime())}] 发现 {count} 个签到活动。")
+        print(f"[{time.strftime('%H:%M:%S', time.localtime())}] 发现了 {count} 个签到活动。")
         for i in range(count):
-            #Todo：Bugs here need to be fixed
-            print(f"第 {i+1} 个，共 {count} 个：")
+            temp_str = "未识别"
+            print(f"\n第 {i+1} 个，共 {count} 个：")
             print(f"课程名称：{rollcalls[i]['course_title']}")
             print(f"创建者：{rollcalls[i]['created_by_name']}")
             print(f"状态：{'进行中' if rollcalls[i]['rollcall_status'] == 'in_progress' else '已签到'}")
@@ -58,34 +59,36 @@ def parse_rollcalls(data, driver, longitude, latitude):
                 elif rollcalls[i]['children']['source'] == "radar":
                     temp_str = "雷达签到"
             else:
-                temp_str = "未识别"
-                print(f'未能识别该签到类型-{rollcalls[i]['source']}')
+                print(f"未能识别该签到类型-{rollcalls[i]['source']}")
             print(f"签到类型：{temp_str}\n")
             if undone:
-                print(f"[{time.time()}] 开始应答第 {i+1} 个签到...")
+                print(f"[{time.strftime('%H:%M:%S', time.localtime())}] 开始应答第 {i+1} 个签到...")
                 if temp_str == "数字签到":
                     if send_code(driver, rollcalls[i]['rollcall_id']):
                         print("数字签到成功！")
-                        return True
+                        result[i] = True
                     else:
                         print("数字签到失败。")
-                        return False
                 elif temp_str == "扫码签到":
                     print("暂不支持扫码签到")
-                    return False
                 elif temp_str == "雷达签到":
-                    if send_radar(driver, rollcalls[i]['rollcall_id'], longitude, latitude):
-                        print("雷达签到成功！")
-                        return True
+                    if latitude is None or longitude is None:
+                        print("缺少经纬度信息，无法进行雷达签到。")
                     else:
-                        print("雷达签到失败。")
-                        return False
+                        if send_radar(driver, rollcalls[i]['rollcall_id'], latitude, longitude):
+                            print("雷达签到成功！")
+                            result[i] = True
+                        else:
+                            print("雷达签到失败。")
                 elif temp_str == "未识别":
                     print("未知类型的签到失败。")
-                    return False
             else:
                 print("该签到已完成。")
-                return True
+                result[i] = True
     else:
         print("当前无签到活动。")
+
+    if False in result:
         return False
+    else:
+        return True

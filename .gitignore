@@ -7,14 +7,17 @@
 /dataSources/
 /dataSources.local.xml
 
-/.idea
-/.venv
-/.vscode
-/rollcall-bot_CHU-TEST
-/XMU-Rollcall-Bot-aiohttp
 *__pycache__
 /.quickstart.md
 /.demo.md
 /.demo.py
 /.chromedriver.exe
+
+/.idea
+/.venv
+/.vscode
+/rollcall-bot_CHU-TEST
+/XMU-Rollcall-Bot-aiohttp
+/XMU-Rollcall-Bot-CLI(v3)
 /rollcall-bot_CHU/config.json
+/TronclassTool-v0.3-TEST
