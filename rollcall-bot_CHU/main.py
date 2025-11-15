@@ -1,5 +1,5 @@
 # CHU-TronClassTool
-ver = "0.2.0"
+ver = "0.2.1"
 
 # transplanted by Rinn
 # origin repository https://github.com/KrsMt-0113/XMU-Rollcall-Bot
@@ -130,7 +130,10 @@ def main():
                 else:
                     temp_data = data
                     if len(temp_data['rollcalls']) > 0:
-                        if not parse_rollcalls(temp_data, driver, longitude, latitude):
+                        if False in parse_rollcalls(temp_data, driver, longitude, latitude):
+                            print(f"\n[{time.strftime('%H:%M:%S', time.localtime())}]:存在应答失败的签到，即将重试...")
+                        else:
+                            print(f"\n[{time.strftime('%H:%M:%S', time.localtime())}]:所有正进行的签到应答成功，监测将继续进行...")
                             temp_data = {'rollcalls': []}
             except Exception as e:
                 print(f"[{time.strftime("%H:%M:%S", time.localtime())}]:发生错误 -{e}")
