@@ -19,5 +19,5 @@
 /rollcall-bot_CHU-TEST
 /XMU-Rollcall-Bot-aiohttp
 /XMU-Rollcall-Bot-CLI(v3)
-/rollcall-bot_CHU/config.json
+/rollcall-bot_CHU/*.json
 /TronclassTool-v0.3-TEST

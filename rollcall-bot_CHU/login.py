@@ -132,33 +132,27 @@ def login() -> Tuple[SessionDriver, dict]:
         print('正在自动登录...')
         driver.find_element(By.ID, "username").send_keys(username)
         driver.find_element(By.ID, "password").send_keys(password)
+        driver.find_element(By.ID, "login_submit").click()
 
-        has_captcha = bool(driver.find_elements(By.ID, "captcha"))
-
-        if not has_captcha:
-            driver.find_element(By.ID, "login_submit").click()
-            WebDriverWait(driver, 15, 0.5).until(
-                lambda d: ("首页 - 畅课" in d.title) or d.find_elements(By.ID, "showErrorTip")
-            )
-        else:
-            print("需要验证码，请在浏览器中输入并完成登录...")
-            WebDriverWait(driver, timeout=3600, poll_frequency=0.5).until(
-                lambda d: ("首页 - 畅课" in d.title) or d.find_elements(By.ID, "showErrorTip")
-            )
+        WebDriverWait(driver, 15, 0.5).until(
+            lambda d: ("首页 - 畅课" in d.title) or d.find_elements(By.ID, "showErrorTip")
+        )
+        if driver.find_elements(By.ID, "showErrorTip"):
+            error_tips = driver.find_elements(By.ID, "showErrorTip")
+            if error_tips == '图形动态码错误':
+                print("需要验证码，请在浏览器中输入并完成登录...")
+                WebDriverWait(driver, timeout=3600, poll_frequency=0.5).until(EC.title_contains('首页 - 畅课'))
+            else:
+                print(f"登录失败-{error_tips[0].text}\n五秒后程序退出")
+                driver.quit()
+                time.sleep(5)
+                exit(0)
 
     else:
         print("请手动完成登录...")
         WebDriverWait(driver, timeout=3600, poll_frequency=0.5).until(
             lambda d: ("首页 - 畅课" in d.title) or d.find_elements(By.ID, "showErrorTip")
         )
-
-
-    if driver.find_elements(By.ID, "showErrorTip"):
-        error_tips = driver.find_elements(By.ID, "showErrorTip")
-        print(f"登录失败-{error_tips[0].text}\n五秒后程序退出")
-        driver.quit()
-        time.sleep(5)
-        exit(0)
 
     user_name = driver.find_element(By.ID, 'userCurrentName').text if driver.find_elements(By.ID, 'userCurrentName') else "Unknown"
     print(f"用户 {user_name} 登录成功")
