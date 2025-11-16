@@ -70,7 +70,7 @@ fetch(url, {credentials: 'include'})
             # 启动selenium
             self.log("初始化 Selenium...", "info")
             self.update_status("初始化...")
-            self.driver = webdriver.Chrome(chrome_options, service=Service('chromedriver.exe'))
+            self.driver = webdriver.Chrome(chrome_options, service=Service('../chromedriver.exe'))
 
             # 访问登录页面
             self.driver.get("https://course-online.chd.edu.cn/user/index#/")
@@ -165,7 +165,7 @@ def main():
     """主函数"""
     # 读取配置
     try:
-        with open("config.json", encoding='utf-8') as f:
+        with open("../config.json", encoding='utf-8') as f:
             config = json.load(f)
             username = config["username"]
             password = config["password"]
