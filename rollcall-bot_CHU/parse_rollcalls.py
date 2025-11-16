@@ -35,7 +35,7 @@ def parse_rollcalls(data, driver, longitude=None, latitude=None):
             print(f"\n第 {i+1} 个，共 {count} 个：")
             print(f"课程名称：{rollcalls[i]['course_title']}")
             print(f"创建者：{rollcalls[i]['created_by_name']}")
-            print(f"状态：{'进行中' if rollcalls[i]['rollcall_status'] == 'in_progress' else '已签到'}")
+            print(f"状态：{'进行中' if rollcalls[i]['rollcall_status'] == 'in_progress' else '已结束'}")
             print(f"是否计分：{'是' if rollcalls[i]['scored'] else '否'} ")
             if rollcalls[i]['status'] == 'absent':
                 undone = 1
@@ -49,15 +49,6 @@ def parse_rollcalls(data, driver, longitude=None, latitude=None):
                 temp_str = "扫码签到"
             elif rollcalls[i]['source'] == "radar":
                 temp_str = "雷达签到"
-            elif rollcalls[i]['source'] == "merged":
-                if not rollcalls[i]['children']['status'] == 'absent':
-                    undone = 0
-                if rollcalls[i]['children']['source'] == "number":
-                    temp_str = "数字签到"
-                elif rollcalls[i]['children']['source'] == "qr":
-                    temp_str = "扫码签到"
-                elif rollcalls[i]['children']['source'] == "radar":
-                    temp_str = "雷达签到"
             else:
                 print(f"未能识别该签到类型-{rollcalls[i]['source']}")
             print(f"签到类型：{temp_str}\n")
