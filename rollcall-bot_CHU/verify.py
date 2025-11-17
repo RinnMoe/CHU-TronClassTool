@@ -8,87 +8,21 @@ import json
 from urllib.parse import urlparse, parse_qs
 from config import get_base_url
 from parse_qr import parse_sign_qr_code
-from getimage import getimage
+# from getimage import getimage
 
 HEADERS = {
-        "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36 Edg/141.0.0.0",
+        "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36 TronClass/Common",
         "Content-Type": "application/json"
     }
 
 def pad(i):
     return str(i).zfill(4)
 
-
-# AIOHTTP version of send_code transplanted from XMU-Rollcall-Bot-CLI(v3)
-async def send_code_async(driver, rollcall_id):
-    url = f"{get_base_url()}/api/rollcall/{rollcall_id}/answer_number_rollcall"
-    cookies = {c['name']: c['value'] for c in driver.get_cookies()}
-
-    stop_flag = asyncio.Event()
-    found_code = None
-
-    async def put_request(session, i):
-        nonlocal found_code
-        if stop_flag.is_set():
-            return None
-        payload = {
-            "deviceId": str(uuid.uuid4()),
-            "numberCode": pad(i),
-        }
-        try:
-            async with session.put(url, json=payload, timeout=aiohttp.ClientTimeout(total=5)) as resp:
-                if resp.status == 200:
-                    found_code = pad(i)
-                    stop_flag.set()
-                    return found_code
-        except asyncio.CancelledError:
-            raise
-        except Exception:
-            # ignore request errors and keep trying others
-            return None
-        return None
-
-    print("正在遍历签到码...")
-    t00 = time.time()
-
-    # limit concurrent connections similar to ThreadPoolExecutor max_workers
-    connector = aiohttp.TCPConnector(limit=200)
-    async with aiohttp.ClientSession(headers=HEADERS, cookies=cookies, connector=connector) as session:
-        tasks = [asyncio.create_task(put_request(session, i)) for i in range(10000)]
-        pending = set(tasks)
-        try:
-            while pending:
-                done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
-                for d in done:
-                    try:
-                        res = d.result()
-                    except Exception:
-                        res = None
-                    if res:
-                        # cancel the rest
-                        for p in pending:
-                            p.cancel()
-                        await asyncio.gather(*pending, return_exceptions=True)
-                        print("签到码:", res)
-                        t01 = time.time()
-                        print("用时: %.2f 秒" % (t01 - t00))
-                        return True
-            # none found
-            t01 = time.time()
-            print("失败。\n用时: %.2f 秒" % (t01 - t00))
-            return False
-        finally:
-            # ensure cleanup
-            if pending:
-                for p in pending:
-                    p.cancel()
-                await asyncio.gather(*pending, return_exceptions=True)
-
 # qrcode decoder from https://github.com/wilinz/fuck_tronclass_sign/
 def scan_url_analysis(e: str):
     # 如果 URL 包含 "/j?p=" 且不是以 "http" 开头，拼接基础 URL
     if "/j?p=" in e and not e.startswith("http"):
-        e = base_url + e
+        e = get_base_url() + e
     # 如果仍然不是 HTTP 链接，直接返回
     if not e.startswith("http"):
         return e
@@ -118,10 +52,62 @@ def scan_url_analysis(e: str):
     return e
 
 
-
 def send_code(driver, rollcall_id):
-    return asyncio.run(send_code_async(driver, rollcall_id))
+    url = f"{get_base_url()}/api/rollcall/{rollcall_id}/answer_number_rollcall"
+    cookies = {c['name']: c['value'] for c in driver.get_cookies()}
+    print("正在遍历签到码...")
+    t00 = time.time()
 
+    async def put_request(i, session, stop_flag, url, sem, timeout):
+        if stop_flag.is_set():
+            return None
+        async with sem:
+            if stop_flag.is_set():
+                return None
+            payload = {
+                "deviceId": str(uuid.uuid4()),
+                "numberCode": pad(i)
+            }
+            try:
+                async with session.put(url, json=payload, timeout=timeout) as r:
+                    if r.status == 200:
+                        stop_flag.set()
+                        return pad(i)
+            except Exception:
+                pass
+            return None
+
+    async def main():
+        stop_flag = asyncio.Event()
+        sem = asyncio.Semaphore(200)
+        timeout = aiohttp.ClientTimeout(total=5)
+        # 直接传 cookies，避免 CookieJar 行为差异
+        async with aiohttp.ClientSession(headers=HEADERS, cookies=cookies) as session:
+            # 创建 Task 而不是原始协程
+            tasks = [asyncio.create_task(put_request(i, session, stop_flag, url, headers, sem, timeout)) for i in range(10000)]
+            try:
+                for coro in asyncio.as_completed(tasks):
+                    res = await coro
+                    if res is not None:
+                        # 取消其余未完成的 Task
+                        for t in tasks:
+                            if not t.done():
+                                t.cancel()
+                        print("签到码:", res)
+                        t01 = time.time()
+                        print("用时: %.2f 秒" % (t01 - t00))
+                        return True
+            finally:
+                # 确保所有 task 结束
+                for t in tasks:
+                    if not t.done():
+                        t.cancel()
+                await asyncio.gather(*tasks, return_exceptions=True)
+        t01 = time.time()
+        print("失败。\n用时: %.2f 秒" % (t01 - t00))
+        return False
+
+    return asyncio.run(main())
 
 def send_radar(driver, rollcall_id, latitude, longitude):
     url = f"{get_base_url()}/api/rollcall/{rollcall_id}/answer?api_version=1.76"
@@ -144,7 +130,7 @@ def send_radar(driver, rollcall_id, latitude, longitude):
 def send_qr(driver, rollcall_id, course_id):
     #getimage by livestream based on course_id
     image = None  #PLACEHOLDER
-    image = getimage(course_id)
+    # image = getimage(driver, course_id)
 
 
     detector = cv2.QRCodeDetector()
