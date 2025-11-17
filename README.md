@@ -1,25 +1,22 @@
 # TronClassTool for CHD 
-> 该项目基于 https://github.com/KrsMt-0113/XMU-Rollcall-Bot v2.0.1 移植，请参考原项目文档进行开发。 
+> 该项目基于 https://github.com/KrsMt-0113/XMU-Rollcall-Bot v2.0.1 移植，开发请参考原项目文档。 
 
 
 ---
 
-# 更新日志
+## Latest Updates
 
 >__早期开发阶段__ - 这个项目的移植工作正在进行，可用性不完全。
-
-
-##  `0.3.0` - *2025-11-14*
-- 分离登录、配置管理模块
-- 数字签到应答移植aiohttp方法
-- 引入登录态保存，使selenium使用场景最小化
-- 本地保存明文账密存在个资风险故改为可选项
-- 可捕获验证码和密码错误的登陆异常
+> 
+`0.3.1` - *2025-11-17*
+- 简化应答流程
+- 集成了基于https://github.com/wilinz/fuck_tronclass_sign/的qr的解码与应答功能
+- qr图像获取将于下个版本集成
 
 
 ---
 
-# Todos
+## Todos
 - 二维码签到
 - 根据授课地点自动匹配经纬度
 - 基于课程时间的监测频率动态切换
