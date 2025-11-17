@@ -1,7 +1,7 @@
 # CHU-TronClassTool by Rinn
 # based on https://github.com/KrsMt-0113/XMU-Rollcall-Bot
 
-ver = "0.3.1"
+ver = "0.3.2"
 
 import datetime
 import time
@@ -67,7 +67,7 @@ def main():
                 else:
                     temp_data = data
                     if len(temp_data['rollcalls']) > 0:
-                        if False in parse_rollcalls(temp_data, driver, longitude, latitude):
+                        if not parse_rollcalls(temp_data, driver, longitude, latitude):
                             print(f"\n[{time.strftime('%H:%M:%S', time.localtime())}]:存在应答失败的签到，即将重试...")
                         else:
                             print(f"\n[{time.strftime('%H:%M:%S', time.localtime())}]:所有正进行的签到应答成功，监测将继续进行...")

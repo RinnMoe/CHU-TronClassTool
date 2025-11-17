@@ -3,12 +3,11 @@ import requests
 import time
 import asyncio
 import aiohttp
-import cv2
 import json
 from urllib.parse import urlparse, parse_qs
 from config import get_base_url
 from parse_qr import parse_sign_qr_code
-# from getimage import getimage
+from qr_utils import get_qr_text
 
 HEADERS = {
         "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36 TronClass/Common",
@@ -84,7 +83,7 @@ def send_code(driver, rollcall_id):
         # 直接传 cookies，避免 CookieJar 行为差异
         async with aiohttp.ClientSession(headers=HEADERS, cookies=cookies) as session:
             # 创建 Task 而不是原始协程
-            tasks = [asyncio.create_task(put_request(i, session, stop_flag, url, headers, sem, timeout)) for i in range(10000)]
+            tasks = [asyncio.create_task(put_request(i, session, stop_flag, url, HEADERS, sem)) for i in range(10000)]
             try:
                 for coro in asyncio.as_completed(tasks):
                     res = await coro
@@ -128,20 +127,15 @@ def send_radar(driver, rollcall_id, latitude, longitude):
 
 
 def send_qr(driver, rollcall_id, course_id):
-    #getimage by livestream based on course_id
-    image = None  #PLACEHOLDER
-    # image = getimage(driver, course_id)
-
-
-    detector = cv2.QRCodeDetector()
-    qr_text, bbox, _ = detector.detectAndDecode(image)
+    print('尝试通过直播流获取二维码内容...')
+    qr_text = get_qr_text(driver, course_id)
 
     qr_data = {"courseId": 0, "data": "0", "rollcallId": 0}
     if qr_text:
         qr_data = scan_url_analysis(qr_text)
+        print(f'解析成功，二维码内容：{qr_data}')
     else:
         print('未能识别二维码内容')
-
 
     url = f"{get_base_url()}/api/rollcall/{rollcall_id}/answer_qr_rollcall"
     payload = {
