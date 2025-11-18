@@ -83,7 +83,7 @@ def send_code(driver, rollcall_id):
         # 直接传 cookies，避免 CookieJar 行为差异
         async with aiohttp.ClientSession(headers=HEADERS, cookies=cookies) as session:
             # 创建 Task 而不是原始协程
-            tasks = [asyncio.create_task(put_request(i, session, stop_flag, url, HEADERS, sem)) for i in range(10000)]
+            tasks = [asyncio.create_task(put_request(i, session, stop_flag, url, sem, timeout)) for i in range(10000)]
             try:
                 for coro in asyncio.as_completed(tasks):
                     res = await coro
@@ -92,7 +92,7 @@ def send_code(driver, rollcall_id):
                         for t in tasks:
                             if not t.done():
                                 t.cancel()
-                        print("签到码:", res)
+                        print("成功获取到签到码:", res)
                         t01 = time.time()
                         print("用时: %.2f 秒" % (t01 - t00))
                         return True
