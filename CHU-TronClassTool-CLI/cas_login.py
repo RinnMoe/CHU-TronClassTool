@@ -3,7 +3,6 @@ import os
 import time
 import base64
 import requests
-from typing import Tuple
 from rich import print
 from bs4 import BeautifulSoup
 import random
@@ -32,6 +31,7 @@ class SessionDriver:
 
 
 COOKIE_FILE = "cookies.json"
+
 
 def save_cookies_file(cookies):
     try:
@@ -65,7 +65,6 @@ def load_session(cookies_list):
 
 def random_string(n: int) -> str:
     aes_chars = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678"
-
     return "".join(random.choice(aes_chars) for _ in range(n))
 
 
@@ -80,9 +79,6 @@ def encrypt_password(password: str, salt: str) -> str:
 
 
 def cas_login(username: str, password: str, cas_url: str):
-    """
-    返回一个已登录的 requests.Session()
-    """
     session = requests.Session()
 
     resp = session.get(cas_url)
@@ -98,18 +94,19 @@ def cas_login(username: str, password: str, cas_url: str):
         "username": username,
         "password": encrypted_pwd,
         "lt": lt,
+        "dllt": "generalLogin",
+        "cllt": "userNameLogin",
         "execution": execution,
         "_eventId": "submit",
-        "cllt": "userNameLogin",
-        "dllt": "generalLogin"
     }
 
-    resp = session.post(cas_url, data=data, allow_redirects=True)
+    resp = session.post(f'{cas_url}/authserver/login', data=data, allow_redirects=True)
 
     if ("统一身份认证" in resp.text) or ("密码错误" in resp.text) or ("登录失败" in resp.text):
-        raise RuntimeError("CAS 登录失败，请检查账号密码是否正确")
+        raise RuntimeError("CAS 登录失败")
 
     return session
+
 
 def login(username, password, cas_url, interval) -> SessionDriver:
     base_url = get_base_url()
@@ -121,7 +118,7 @@ def login(username, password, cas_url, interval) -> SessionDriver:
         print("尝试恢复登录态...", end="")
         s = load_session(old_cookies)
         try:
-            r = s.get(f'{api_url}/user/index#/', timeout=10)
+            r = s.get(f'{base_url}/user/index#/', timeout=10)
             if r.ok and ("统一身份认证平台" not in r.text):
                 print("[green]成功[/]")
                 return SessionDriver(s)

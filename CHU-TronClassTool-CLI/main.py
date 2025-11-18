@@ -56,6 +56,7 @@ def main():
       .catch(err => callback({error: String(err)}));
     """
 
+    print(f"获取信息中...", end='')
     user_name = requests.get(f"{base_url}/api/profile", cookies={c["name"]: c["value"] for c in driver.get_cookies()}).json()['name']
     print(f"用户 {user_name} 登录成功")
     res = requests.get(api_url, cookies={c["name"]: c["value"] for c in driver.get_cookies()})
