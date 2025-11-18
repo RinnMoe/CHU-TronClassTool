@@ -1,6 +1,6 @@
 # CHU-TronClassTool by Rinn
 # based on https://github.com/KrsMt-0113/XMU-Rollcall-Bot
-ver = "0.3.2"
+ver = "0.3.3"
 
 import datetime
 import time
