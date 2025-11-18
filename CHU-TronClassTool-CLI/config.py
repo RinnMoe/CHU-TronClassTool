@@ -11,6 +11,9 @@ def reset_config(config_path: str = "config.json") -> dict:
     base_url = input(
         "请输入 TronClass 平台地址 (默认 https://course-online.chd.edu.cn): "
     ) or "https://course-online.chd.edu.cn"
+    cas_url = input(
+        "请输入统一身份认证地址 (默认 https://ids.chd.edu.cn): "
+    ) or "https://ids.chd.edu.cn"
     interval = input("请输入轮询间隔，单位秒 (默认 5): ") or 5
     longitude = input("请输入签到经度 (默认 113.000000): ") or 113.0
     latitude = input("请输入签到纬度 (默认 28.000000): ") or 28.0
@@ -20,6 +23,7 @@ def reset_config(config_path: str = "config.json") -> dict:
         "username": username,
         "password": password,
         "base_url": base_url,
+        "cas_url": cas_url,
         "interval": int(interval),
         "longitude": float(longitude),
         "latitude": float(latitude),
