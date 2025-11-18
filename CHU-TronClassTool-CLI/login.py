@@ -10,7 +10,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
-from config import load_config
+from config import load_config, get_base_url
 
 COOKIE_FILE = "cookies.json"
 
@@ -34,10 +34,7 @@ def load_cookies(path=COOKIE_FILE):
 
 class SessionDriver:
     """
-    轻量“驱动”适配器，使用 requests.Session 模拟需要的接口。
-    提供:
-      - get_cookies() -> list[dict(name, value)]
-      - execute_async_script(script, url) -> dict(status, ok, text) 或 {error: ...}
+    使用 requests.Session 适配老driver调用。
     """
     def __init__(self, session: requests.Session):
         self.session = session
@@ -67,25 +64,8 @@ def load_session_from_cookies(cookies_list):
     return s
 
 
-def login() -> Tuple[SessionDriver, dict]:
-    from main import ver
-
-    print(f"CHU-TronClassTool {ver}\ntransplanted by Rinn")
-    print("=================")
-
-    print('正在初始化...', end='')
-    config = load_config()
-
-    username = config.get("username", '') or ''
-    password = config.get("password", '') or ''
-    base_url = config["base_url"]
-    interval = config["interval"]
-    driver_path = config["driver"]
-
-    print('完成')
-    print(f"当前配置: \n平台地址: {base_url} \n轮询间隔: {interval}秒")
-    print("=================")
-
+def login(username, password, driver_path) -> Tuple[SessionDriver, dict]:
+    base_url = get_base_url()
     api_url = f"{base_url}/api/radar/rollcalls"
 
     raw_cookies = load_cookies()
@@ -147,15 +127,9 @@ def login() -> Tuple[SessionDriver, dict]:
                 driver.quit()
                 time.sleep(5)
                 exit(0)
-
     else:
         print("请手动完成登录...")
-        WebDriverWait(driver, timeout=3600, poll_frequency=0.5).until(
-            lambda d: ("首页 - 畅课" in d.title) or d.find_elements(By.ID, "showErrorTip")
-        )
-
-    user_name = driver.find_element(By.ID, 'userCurrentName').text if driver.find_elements(By.ID, 'userCurrentName') else "Unknown"
-    print(f"用户 {user_name} 登录成功")
+        WebDriverWait(driver, timeout=3600, poll_frequency=0.5).until(EC.title_contains("首页 - 畅课"))
 
     cookies = driver.get_cookies()
     save_cookies(cookies)

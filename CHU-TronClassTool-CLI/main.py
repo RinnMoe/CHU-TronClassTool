@@ -1,6 +1,5 @@
 # CHU-TronClassTool by Rinn
 # based on https://github.com/KrsMt-0113/XMU-Rollcall-Bot
-
 ver = "0.3.2"
 
 import datetime
@@ -9,10 +8,37 @@ import json
 import requests
 from rich import print
 from parse_rollcalls import parse_rollcalls
-from login import login
+from cas_login import login as cas_login
+from login import login as browser_login
+from config import load_config
 
 def main():
-    driver, config = login()
+    print(f"CHU-TronClassTool {ver}\ntransplanted by Rinn")
+    print("=================")
+    print('正在初始化...', end='')
+
+    config = load_config()
+    username = config.get("username", '') or ''
+    password = config.get("password", '') or ''
+    base_url = config["base_url"]
+    interval = config["interval"]
+    driver_path = config["driver"]
+
+    print('完成')
+    print(f"当前配置: \n平台地址: {base_url} \n轮询间隔: {interval}秒")
+    print("=================")
+
+
+    try:
+        driver = cas_login(username, password)
+    except Exception as e:
+        print(f'{e}\n尝试使用浏览器登录...')
+        try:
+            driver = browser_login(username, password, driver_path)
+        except Exception as e:
+            print(f'浏览器登录失败 - {e}\n程序退出。')
+            time.sleep(2)
+            return None
 
     base_url = config["base_url"]
     interval = config["interval"]
@@ -29,6 +55,8 @@ def main():
       .catch(err => callback({error: String(err)}));
     """
 
+    user_name = requests.get(f"{base_url}/api/profile", cookies={c["name"]: c["value"] for c in driver.get_cookies()}).json()['name']
+    print(f"用户 {user_name} 登录成功")
     res = requests.get(api_url, cookies={c["name"]: c["value"] for c in driver.get_cookies()})
     if res.status_code == 200:
         print("五秒后进入监测...")
@@ -86,6 +114,8 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
+        time.sleep(2)
         print("用户中断，程序退出。")
     except Exception as e:
+        time.sleep(2)
         print(f"发生错误，程序退出。\n{e}")

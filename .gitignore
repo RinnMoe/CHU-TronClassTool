@@ -21,7 +21,9 @@
 /XMU-Rollcall-Bot-CLI(v3)
 /rollcall-bot_CHU/*.json
 /TronclassTool-v0.3-TEST
-/qrRollcall/
-/fuck_tronclass_sign-main/
-/CHU-TronClassTool-GUI/
-/CHU-TronClassTool-Server/
+/misc/qrRollcall/
+/misc/fuck_tronclass_sign-main/
+/misc/CHU-TronClassTool-GUI/
+/misc/CHU-TronClassTool-Server/
+/cas_login/
+/misc/

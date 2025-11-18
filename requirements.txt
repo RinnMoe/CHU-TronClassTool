@@ -1,3 +1,5 @@
+beautifulsoup4
+pycryptodome
 requests~=2.32.5
 selenium~=4.37.0
 pillow~=12.0.0
