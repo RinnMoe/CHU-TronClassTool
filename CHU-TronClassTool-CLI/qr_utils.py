@@ -3,6 +3,7 @@ import time
 import numpy as np
 import requests
 import subprocess
+from config import get_base_url
 from pyzbar.pyzbar import decode
 
 def identify(text):
@@ -22,6 +23,7 @@ def get_livestream(driver, course_id):
             if info_res.status_code == 200:
                 live_info = info_res.json()
                 streams = live_info['data']['streams']
+                encoder_stream = []
                 for item in streams:
                     if item.get("label") == "encoder":
                         encoder_stream.append(item.get("flv_src"))
