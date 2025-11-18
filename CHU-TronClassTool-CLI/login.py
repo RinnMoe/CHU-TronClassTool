@@ -64,7 +64,7 @@ def load_session_from_cookies(cookies_list):
     return s
 
 
-def login(username, password, driver_path) -> Tuple[SessionDriver, dict]:
+def login(username, password, driver_path, interval) -> SessionDriver:
     base_url = get_base_url()
     api_url = f"{base_url}/api/radar/rollcalls"
 
@@ -80,7 +80,7 @@ def login(username, password, driver_path) -> Tuple[SessionDriver, dict]:
                     print("登录态已失效，将重新登录")
                 else:
                     print("已恢复登录态")
-                    return SessionDriver(session), config
+                    return SessionDriver(session)
             else:
                 print(f"登录态恢复失败-{resp.status_code}，将重新登录")
         except Exception as e:
@@ -137,4 +137,4 @@ def login(username, password, driver_path) -> Tuple[SessionDriver, dict]:
 
     driver.quit()
     time.sleep(interval)
-    return SessionDriver(session), config
+    return SessionDriver(session)

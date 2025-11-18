@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 import random
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
+from config import get_base_url
 
 
 class SessionDriver:
@@ -110,7 +111,10 @@ def cas_login(username: str, password: str, cas_url: str):
 
     return session
 
-def login(username, password) -> Tuple[SessionDriver, dict]:
+def login(username, password, cas_url, interval) -> SessionDriver:
+    base_url = get_base_url()
+    api_url = f"{base_url}/api/radar/rollcalls"
+
     # 尝试 cookie 恢复
     old_cookies = load_cookie_file()
     if old_cookies:
@@ -120,7 +124,7 @@ def login(username, password) -> Tuple[SessionDriver, dict]:
             r = s.get(f'{api_url}/user/index#/', timeout=10)
             if r.ok and ("统一身份认证平台" not in r.text):
                 print("[green]成功[/]")
-                return SessionDriver(s), config
+                return SessionDriver(s)
             else:
                 print("[yellow]失效，重新登录[/]")
         except:
@@ -142,4 +146,4 @@ def login(username, password) -> Tuple[SessionDriver, dict]:
     print(f"[green]成功[/]")
     time.sleep(interval)
 
-    return SessionDriver(s), config
+    return SessionDriver(s)

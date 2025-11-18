@@ -21,6 +21,7 @@ def main():
     username = config.get("username", '') or ''
     password = config.get("password", '') or ''
     base_url = config["base_url"]
+    cas_url = config["cas_url"]
     interval = config["interval"]
     driver_path = config["driver"]
 
@@ -30,11 +31,11 @@ def main():
 
 
     try:
-        driver = cas_login(username, password)
+        driver = cas_login(username, password,cas_url, interval)
     except Exception as e:
         print(f'{e}\n尝试使用浏览器登录...')
         try:
-            driver = browser_login(username, password, driver_path)
+            driver = browser_login(username, password, driver_path, interval)
         except Exception as e:
             print(f'浏览器登录失败 - {e}\n程序退出。')
             time.sleep(2)

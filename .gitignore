@@ -19,7 +19,7 @@
 /rollcall-bot_CHU-TEST
 /XMU-Rollcall-Bot-aiohttp
 /XMU-Rollcall-Bot-CLI(v3)
-/rollcall-bot_CHU/*.json
+*.json
 /TronclassTool-v0.3-TEST
 /misc/qrRollcall/
 /misc/fuck_tronclass_sign-main/

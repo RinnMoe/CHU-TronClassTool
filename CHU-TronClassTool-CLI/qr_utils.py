@@ -3,12 +3,14 @@ import time
 import numpy as np
 import requests
 import subprocess
+import cv2
 from config import get_base_url
-from pyzbar.pyzbar import decode
+
 
 def identify(text):
     payload_pattern = re.compile(r"/j\?p=0~.3t80!3~([0-9a-fA-F]{42})!4~.95bc")
     return payload_pattern.findall(text)
+
 
 def get_livestream(driver, course_id):
     base_url = get_base_url()
@@ -64,6 +66,7 @@ def get_qr_text(driver, course_id, timeout_sec=60):
     )
 
     start = time.time()
+    detector = cv2.barcode_BarcodeDetector()
 
     try:
         while True:
@@ -76,14 +79,15 @@ def get_qr_text(driver, course_id, timeout_sec=60):
                 continue
 
             frame = np.frombuffer(raw, np.uint8).reshape((h, w, 3))
-            qrs = decode(frame)
+            ok, decoded_info, points, _ = detector.detectAndDecode(frame)
 
-            if not qrs:
+            if not ok or not decoded_info:
                 continue
 
             # 遍历所有二维码
-            for qr in qrs:
-                qr_text = qr.data.decode("utf-8", errors="ignore")
+            for qr_text in decoded_info:
+                if not qr_text:
+                    continue
 
                 if identify(qr_text):
                     print("成功在视频中查找到签到码")
