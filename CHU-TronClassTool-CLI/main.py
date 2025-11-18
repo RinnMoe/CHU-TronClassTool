@@ -13,7 +13,7 @@ from login import login as browser_login
 from config import load_config
 
 def main():
-    print(f"CHU-TronClassTool {ver}\ntransplanted by Rinn")
+    print(f"CHU-TronClassTool {ver} transplanted by Rinn")
     print("=================")
     print('正在初始化...', end='')
 
@@ -61,14 +61,13 @@ def main():
     print(f"用户 {user_name} 登录成功")
     res = requests.get(api_url, cookies={c["name"]: c["value"] for c in driver.get_cookies()})
     if res.status_code == 200:
-        print("五秒后进入监测...")
+        print("启动监测...")
     else:
-        print("登录失败。五秒后程序退出。")
-        driver.quit()
-        time.sleep(5)
+        print("登录失败。3秒后程序退出。")
+        time.sleep(3)
         exit(0)
 
-    time.sleep(5)
+    time.sleep(0.5)
 
     print(f"签到监测启动。")
 
@@ -110,7 +109,6 @@ def main():
             break
         time.sleep(interval)
 
-    driver.quit()
 
 if __name__ == "__main__":
     try:
