@@ -1,46 +1,36 @@
 import json
 import os
 import time
-from typing import Tuple
-from rich import print
+import base64
 import requests
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
-from config import load_config, get_base_url
-
-COOKIE_FILE = "cookies.json"
-
-def save_cookies(cookies, path=COOKIE_FILE):
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(cookies, f, ensure_ascii=False, indent=2)
-    except Exception:
-        pass
-
-
-def load_cookies(path=COOKIE_FILE):
-    if not os.path.exists(path):
-        return None
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return None
+# import ddddocr
+from PIL import Image
+from io import BytesIO
+from rich import print
+from bs4 import BeautifulSoup
+import random
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from config import get_base_url
 
 
 class SessionDriver:
     """
     使用 requests.Session 适配老driver调用。
     """
+
     def __init__(self, session: requests.Session):
         self.session = session
 
     def get_cookies(self):
         return [{"name": c.name, "value": c.value} for c in self.session.cookies]
+
+    def get_session_id(self):
+        cookies = self.get_cookies()
+        for c in cookies:
+            if c["name"] == "session":
+                return c["value"]
+        return None
 
     def execute_async_script(self, script, url, timeout=15):
         try:
@@ -50,91 +40,137 @@ class SessionDriver:
             return {"error": str(e)}
 
 
-def load_session_from_cookies(cookies_list):
+COOKIE_FILE = "cookies.json"
+
+
+def save_cookies_file(cookies):
+    try:
+        with open(COOKIE_FILE, "w", encoding="utf-8") as f:
+            json.dump(cookies, f, ensure_ascii=False, indent=2)
+    except:
+        pass
+
+
+def load_cookie_file():
+    if not os.path.exists(COOKIE_FILE):
+        return None
+    try:
+        with open(COOKIE_FILE, encoding="utf-8") as f:
+            return json.load(f)
+    except:
+        return None
+
+
+def load_session(cookies_list):
     s = requests.Session()
     for c in cookies_list:
-        name = c.get("name")
-        value = c.get("value")
-        domain = c.get("domain", None)
-        path = c.get("path", "/")
-        if domain:
-            s.cookies.set(name, value, domain=domain, path=path)
-        else:
-            s.cookies.set(name, value, path=path)
+        s.cookies.set(
+            c.get("name"),
+            c.get("value"),
+            domain=c.get("domain", None),
+            path=c.get("path", "/")
+        )
     return s
 
 
-def login(username, password, driver_path, interval) -> SessionDriver:
-    base_url = get_base_url()
-    api_url = f"{base_url}/api/radar/rollcalls"
+def random_string(n: int) -> str:
+    aes_chars = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678"
+    return "".join(random.choice(aes_chars) for _ in range(n))
 
-    raw_cookies = load_cookies()
-    if raw_cookies:
-        session = load_session_from_cookies(raw_cookies)
-        try:
-            resp = session.get(api_url, timeout=10)
-            if resp.status_code == 200:
-                text = resp.text or ""
-                login_keywords = ["统一身份认证平台", "请登录", "login"]
-                if any(k in text for k in login_keywords):
-                    print("登录态已失效，将重新登录")
-                else:
-                    print("已恢复登录态")
-                    return SessionDriver(session)
-            else:
-                print(f"登录态恢复失败-{resp.status_code}，将重新登录")
-        except Exception as e:
-            print(f"登录态恢复失败，将重新登录: {e}")
 
-    print("唤起浏览器登录...")
-    chrome_options = Options()
-    try:
-        driver = webdriver.Chrome(options=chrome_options, service=Service(driver_path))
-    except ValueError as ve:
-        print(f"找不到浏览器文件。\n{ve}")
-        exit(0)
-    except Exception as e:
-        print(f"唤起浏览器失败。\n{e}")
-        exit(0)
+def encrypt_password(password: str, salt: str) -> str:
+    raw = (random_string(64) + password).encode("utf-8")
+    key = salt.encode("utf-8")
+    iv = random_string(16).encode("utf-8")
 
-    print("连接 TronClass...", end='')
-    driver.get(f"{base_url}/user/index#/")
-    try:
-        WebDriverWait(driver, 10, 0.5).until(EC.title_contains("统一身份认证平台"))
-        print("成功")
-    except Exception as e:
-        print(f"失败\n{e}")
-        driver.quit()
-        exit(0)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    encrypted = cipher.encrypt(pad(raw, AES.block_size))
+    return base64.b64encode(encrypted).decode()
 
-    if bool(username and password):
-        time.sleep(2)
-        print('正在自动登录...')
-        driver.find_element(By.ID, "username").send_keys(username)
-        driver.find_element(By.ID, "password").send_keys(password)
-        driver.find_element(By.ID, "login_submit").click()
 
-        WebDriverWait(driver, 15, 0.5).until(
-            lambda d: ("首页 - 畅课" in d.title) or d.find_elements(By.ID, "showErrorTip")
-        )
-        if driver.find_elements(By.ID, "showErrorTip"):
-            error_tips = driver.find_elements(By.ID, "showErrorTip")
-            if error_tips == '图形动态码错误':
-                print("需要验证码，请在浏览器中输入并完成登录...")
-                WebDriverWait(driver, timeout=3600, poll_frequency=0.5).until(EC.title_contains('首页 - 畅课'))
-            else:
-                print(f"登录失败-{error_tips[0].text}\n五秒后程序退出")
-                driver.quit()
-                time.sleep(5)
-                exit(0)
+def captcha_check(username, cas_url, session):
+    _time = int(time.time() * 1000)
+    r = session.get(f"{cas_url}/checkNeedCaptcha.htl?username={username}&_={_time}").json()
+    # print(r)
+    if r.get("isNeed"):
+        p = session.get(f"{cas_url}/getCaptcha.htl?{_time}")
+        # img_bytes = p.content
+        # ocr = ddddocr.DdddOcr()
+        # code = ocr.classification(img_bytes)
+        img = Image.open(BytesIO(p.content))
+        img.show()
+        # print(code)
+        captcha = input('输入验证码: ')
+        return captcha
     else:
-        print("请手动完成登录...")
-        WebDriverWait(driver, timeout=3600, poll_frequency=0.5).until(EC.title_contains("首页 - 畅课"))
+        return None
 
-    cookies = driver.get_cookies()
-    save_cookies(cookies)
-    session = load_session_from_cookies(cookies)
 
-    driver.quit()
+def cas_login(username: str, password: str, cas_url: str):
+    session = requests.Session()
+
+    resp = session.get(cas_url)
+    soup = BeautifulSoup(resp.text, "html.parser")
+
+    lt = soup.find("input", {"name": "lt"})["value"]
+    execution = soup.find("input", {"name": "execution"})["value"]
+    salt = soup.find("input", {"id": "pwdEncryptSalt"})["value"]
+
+    encrypted_pwd = encrypt_password(password, salt)
+
+    captcha = captcha_check(username, cas_url, session)
+
+    data = {
+        "username": username,
+        "password": encrypted_pwd,
+        "captcha": captcha or "",
+        "lt": lt,
+        "dllt": "generalLogin",
+        "cllt": "userNameLogin",
+        "execution": execution,
+        "_eventId": "submit",
+    }
+
+    resp = session.post(f'{cas_url}/login', data=data, allow_redirects=True)
+
+    if ("统一身份认证" in resp.text) or ("密码错误" in resp.text) or ("登录失败" in resp.text):
+        raise RuntimeError("CAS 登录失败")
+
+    return session
+
+
+def login(username, password, cas_url, interval) -> SessionDriver:
+    base_url = get_base_url()
+
+    # 尝试 cookie 恢复
+    old_cookies = load_cookie_file()
+    if old_cookies:
+        print("尝试恢复登录态...", end="")
+        s = load_session(old_cookies)
+        try:
+            r = s.get(f'{base_url}/user/index#/', timeout=10)
+            if r.ok and ("统一身份认证平台" not in r.text):
+                print("[green]成功[/]")
+                return SessionDriver(s)
+            else:
+                print("[yellow]失效，重新登录[/]")
+        except:
+            print("[yellow]失效，重新登录[/]")
+
+    print("[cyan]使用统一身份认证登录...[/]", end="")
+
+    if not username or not password:
+        raise RuntimeError("配置文件缺少 username / password 无法使用此方法登录")
+
+    # 登录
+    s = cas_login(username, password, cas_url)
+
+    # 保存 cookies
+    cookies = [{"name": c.name, "value": c.value, "domain": c.domain, "path": c.path}
+               for c in s.cookies]
+    save_cookies_file(cookies)
+
+    print(f"[green]成功[/]")
     time.sleep(interval)
-    return SessionDriver(session)
+
+    return SessionDriver(s)

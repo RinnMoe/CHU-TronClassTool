@@ -26,7 +26,7 @@ def decode_rollcall(data):
         rollcall_count = 0
     return rollcall_count, result
 
-def parse_rollcalls(data, driver, longitude=None, latitude=None):
+def parse_rollcalls(data, driver):
     undone = 0
     count, rollcalls = decode_rollcall(data)
     result = [False for _ in range(count)]
@@ -56,27 +56,25 @@ def parse_rollcalls(data, driver, longitude=None, latitude=None):
             print(f"签到类型：{temp_str}\n")
             if undone:
                 print(f"[{time.strftime('%H:%M:%S', time.localtime())}] 开始应答第 {i+1} 个签到...")
+                cookies = {c['name']: c['value'] for c in driver.get_cookies()}
                 if temp_str == "数字签到":
-                    if send_code(driver, rollcalls[i]['rollcall_id']):
+                    if send_code(rollcalls[i]['rollcall_id'], cookies):
                         print("数字签到成功！")
                         result[i] = True
                     else:
                         print("数字签到失败。")
                 elif temp_str == "扫码签到":
-                    if send_qr(driver, rollcalls[i]['rollcall_id'], rollcalls[i]['course_id']):
+                    if send_qr(driver, rollcalls[i]['rollcall_id'], rollcalls[i]['course_id'], cookies):
                         print("扫码签到成功！")
                         result[i] = True
                     else:
                         print("扫码签到失败。")
                 elif temp_str == "雷达签到":
-                    if latitude is None or longitude is None:
-                        print("缺少经纬度信息，无法进行雷达签到。")
+                    if send_radar(driver, rollcalls[i]['rollcall_id'], rollcalls[i]['course_id'], cookies):
+                        print("雷达签到成功！")
+                        result[i] = True
                     else:
-                        if send_radar(driver, rollcalls[i]['rollcall_id'], latitude, longitude):
-                            print("雷达签到成功！")
-                            result[i] = True
-                        else:
-                            print("雷达签到失败。")
+                        print("雷达签到失败。")
                 elif temp_str == "未识别":
                     print("未知类型的签到失败。")
             else:

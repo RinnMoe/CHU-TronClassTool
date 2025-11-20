@@ -8,11 +8,19 @@ from urllib.parse import urlparse, parse_qs
 from config import get_base_url
 from parse_qr import parse_sign_qr_code
 from qr_utils import get_qr_text
+from position import get_position
 
-HEADERS = {
+
+def get_headers(driver):
+    headers = {
         "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36 TronClass/Common",
-        "Content-Type": "application/json"
-    }
+        "Content-Type": "application/json",
+        'Accept-Encoding': "gzip, deflate, br, zstd",
+        'sec-ch-ua-platform': "\"Android\"",
+        'x-requested-with': "XMLHttpRequest",
+        'x-session-id': f"{driver.get_session_id()}",
+        }
+    return headers
 
 def pad(i):
     return str(i).zfill(4)
@@ -51,9 +59,9 @@ def scan_url_analysis(e: str):
     return e
 
 
-def send_code(driver, rollcall_id):
+def send_code(driver, rollcall_id, cookies):
     url = f"{get_base_url()}/api/rollcall/{rollcall_id}/answer_number_rollcall"
-    cookies = {c['name']: c['value'] for c in driver.get_cookies()}
+    headers = get_headers(driver)
     print("正在遍历签到码...")
     t00 = time.time()
 
@@ -81,7 +89,7 @@ def send_code(driver, rollcall_id):
         sem = asyncio.Semaphore(200)
         timeout = aiohttp.ClientTimeout(total=5)
         # 直接传 cookies，避免 CookieJar 行为差异
-        async with aiohttp.ClientSession(headers=HEADERS, cookies=cookies) as session:
+        async with aiohttp.ClientSession(headers=headers, cookies=cookies) as session:
             # 创建 Task 而不是原始协程
             tasks = [asyncio.create_task(put_request(i, session, stop_flag, url, sem, timeout)) for i in range(10000)]
             try:
@@ -108,28 +116,29 @@ def send_code(driver, rollcall_id):
 
     return asyncio.run(main())
 
-def send_radar(driver, rollcall_id, latitude, longitude):
+def send_radar(driver, rollcall_id, course_id, cookies):
     url = f"{get_base_url()}/api/rollcall/{rollcall_id}/answer?api_version=1.76"
+    headers = get_headers(driver)
+    longitude, latitude = get_position(driver, course_id)
     payload = {
-        "accuracy": 35,
-        "altitude": 0,
-        "altitudeAccuracy": None,
         "deviceId": str(uuid.uuid1()),
-        "heading": None,
         "latitude": latitude,
-        "longitude": longitude,  # 从config文件获取
-        "speed": None
+        "longitude": longitude,
+        "speed": None,
+        "accuracy": 30,
+        "altitude": None,
+        "altitudeAccuracy": None,
+        "heading": None
     }
-    res = requests.put(url, json=payload, headers=HEADERS, cookies={c['name']: c['value'] for c in driver.get_cookies()})
+    res = requests.put(url, json=payload, headers=headers, cookies=cookies)
     if res.status_code == 200:
         return True
     return False
 
 
-def send_qr(driver, rollcall_id, course_id):
+def send_qr(driver, rollcall_id, course_id, cookies):
     print('尝试通过直播流获取二维码内容...')
     qr_text = get_qr_text(driver, course_id)
-
     qr_data = {"courseId": 0, "data": "0", "rollcallId": 0}
     if qr_text:
         qr_data = scan_url_analysis(qr_text)
@@ -138,11 +147,12 @@ def send_qr(driver, rollcall_id, course_id):
         print('未能识别二维码内容')
 
     url = f"{get_base_url()}/api/rollcall/{rollcall_id}/answer_qr_rollcall"
+    headers = get_headers(driver)
     payload = {
         "data": qr_data['data'],
         "deviceId": str(uuid.uuid4()),
     }
-    res = requests.put(url, json=payload, headers=HEADERS, cookies={c['name']: c['value'] for c in driver.get_cookies()})
+    res = requests.put(url, json=payload, headers=headers, cookies=cookies)
     if res.status_code == 200:
         return True
     return False

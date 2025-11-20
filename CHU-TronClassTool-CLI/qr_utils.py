@@ -24,7 +24,7 @@ def get_livestream(driver, course_id):
             info_res = requests.get(live_info_url, cookies={c['name']: c['value'] for c in driver.get_cookies()}) #获取直播活动flv流
             if info_res.status_code == 200:
                 live_info = info_res.json()
-                streams = live_info['data']['streams']
+                streams = live_info['data']['external_live_detail']['streams']
                 encoder_stream = []
                 for item in streams:
                     if item.get("label") == "encoder":
