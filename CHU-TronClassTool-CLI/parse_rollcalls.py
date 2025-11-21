@@ -58,7 +58,7 @@ def parse_rollcalls(data, driver):
                 print(f"[{time.strftime('%H:%M:%S', time.localtime())}] 开始应答第 {i+1} 个签到...")
                 cookies = {c['name']: c['value'] for c in driver.get_cookies()}
                 if temp_str == "数字签到":
-                    if send_code(rollcalls[i]['rollcall_id'], cookies):
+                    if send_code(driver, rollcalls[i]['rollcall_id'], cookies):
                         print("数字签到成功！")
                         result[i] = True
                     else:
