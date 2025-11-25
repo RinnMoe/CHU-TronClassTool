@@ -19,8 +19,6 @@
 /rollcall-bot_CHU-TEST
 /XMU-Rollcall-Bot-aiohttp
 /XMU-Rollcall-Bot-CLI(v3)
-/CHU-TronClassTool-CLI/config.json
-/CHU-TronClassTool-CLI/cookies.json
 /TronclassTool-v0.3-TEST
 /misc/qrRollcall/
 /misc/fuck_tronclass_sign-main/
@@ -30,3 +28,4 @@
 /misc/
 /release/
 /CHU-TronClassTool-CLI-PublicTEST/
+/archived/
